@@ -6,6 +6,8 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
+#include <SDL_opengles2.h>
+
 using namespace std;
 
 struct context {
@@ -49,6 +51,8 @@ struct context {
     int lives = 10;
     int font_size = 32;
     TTF_Font *font;
+
+    GLuint program;
 
     context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f }, is_yellow(false) {}
 };

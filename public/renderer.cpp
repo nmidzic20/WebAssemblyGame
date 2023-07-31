@@ -8,6 +8,8 @@
 #include "context.h"
 #include "renderer.h"
 
+#include <SDL_opengles2.h>
+
 using namespace std;
 
 void Renderer::draw_image(int img, const context* ctx) {

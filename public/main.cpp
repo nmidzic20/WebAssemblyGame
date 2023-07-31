@@ -9,9 +9,11 @@
 #include "renderer.h"
 #include <emscripten.h> // g++/gcc does not know where this header is, emcc does, so this line should be here only if compiling with emscripten
 
+#include <SDL_opengles2.h>
+
 using namespace std;
 
-int load_image(string image_path, context* ctx) {
+int load_image(string image_path, context *ctx) {
     SDL_Texture* texture = IMG_LoadTexture(ctx->renderer, image_path.c_str());
     if (!texture) {
         throw runtime_error("Failed to load image: " + image_path + "\nError: " + SDL_GetError());
@@ -38,7 +40,7 @@ void update_collidables(context *ctx) {
 
 void update_background_offset(context *ctx) {
     ctx->background_offset += ctx->scroll_speed;
-    if (ctx->background_offset >= ctx->background_image_width - ctx->WINDOW_WIDTH) {
+    if (ctx->background_offset >= ctx->WINDOW_WIDTH) {//ctx->background_image_width - ctx->WINDOW_WIDTH) {
         ctx->background_offset = 0.0f;
     }
 }
@@ -149,7 +151,12 @@ void handle_collisions(context *ctx) {
 }
 
 void render_frame(context *ctx) {
-    Renderer::draw_background(ctx);
+    //Renderer::draw_background(ctx);
+
+
+    //apply shader!!
+    //glUseProgram(ctx->program);
+
 
     if (ctx->lives > 0) {
         Renderer::draw_cube(ctx);
@@ -162,8 +169,15 @@ void render_frame(context *ctx) {
 void main_loop(void *arg) {
     context *ctx = static_cast<context*>(arg);
 
-    SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 255, 255);
-    SDL_RenderClear(ctx->renderer);
+    // Set blue background
+    glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+    // Clear screen
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Draw the vertex buffer
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    SDL_GL_SwapWindow(ctx->window);
 
     render_frame(ctx);
     handle_collisions(ctx);
@@ -172,14 +186,87 @@ void main_loop(void *arg) {
 
     update_background_offset(ctx);
     update_collidables(ctx);
+
 }
+
+GLuint createShader(const char* source, GLenum shaderType) {
+    GLuint shader = glCreateShader(shaderType);
+    glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
+
+    // Check for shader compilation errors (optional but helpful for debugging)
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+        cerr << "Error: Shader compilation failed\n" << infoLog << endl;
+    }
+
+    return shader;
+}
+
+GLuint createProgram(GLuint vertexShader, GLuint fragmentShader) {
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
+
+    // Check for program linking errors (optional but helpful for debugging)
+    GLint success;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
+        cerr << "Error: Program linking failed\n" << infoLog << endl;
+    }
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    return program;
+}
+
 
 int main(int argc, char *argv[]) {
     context ctx;
 
-    SDL_Init(SDL_INIT_VIDEO);
-    ctx.window = SDL_CreateWindow("Endless Runner", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT, 0);
-    ctx.renderer = SDL_CreateRenderer(ctx.window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Init(SDL_INIT_EVERYTHING);
+
+    ctx.window = SDL_CreateWindow("Endless Runner", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
+    ctx.renderer = SDL_CreateRenderer(ctx.window, -1, SDL_WINDOW_OPENGL); // SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+    // Create OpenGLES 2 context on SDL window
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GLContext glc = SDL_GL_CreateContext(ctx.window);
+
+// Load and compile the shaders
+    const char* vertexShaderSource = R"(
+        attribute vec4 a_position;
+
+        void main() {
+            gl_Position = a_position;
+        }
+    )";
+
+    const char* fragmentShaderSource = R"(
+        #ifdef GL_ES
+        precision mediump float;
+        #endif
+
+        void main() {
+            // Set the color to red (1.0, 0.0, 0.0, 1.0)
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+    )";
+
+    GLuint vertexShader = createShader(vertexShaderSource, GL_VERTEX_SHADER);
+    GLuint fragmentShader = createShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+    ctx.program = createProgram(vertexShader, fragmentShader);
 
     try {
         ctx.background_image = load_image("./assets/image.png", &ctx);
