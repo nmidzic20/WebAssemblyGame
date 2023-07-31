@@ -11,6 +11,7 @@ using namespace std;
 struct context {
     const float WINDOW_WIDTH = 1000; 
     const float WINDOW_HEIGHT = 600; 
+    const int NUMBER_COLLIDABLES = 5;
 
     struct Point {
         float x, y, z;
@@ -52,4 +53,4 @@ struct context {
     context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f }, is_yellow(false) {}
 };
 
-#endif // CONTEXT_H
+#endif

@@ -11,81 +11,17 @@
 
 using namespace std;
 
-int load_image(string image_path, context *ctx) {
-    ctx->images.push_back(IMG_LoadTexture(ctx->renderer, image_path.c_str()));
-    return ctx->images.size()-1;
-}
-
-/*void draw_image(int img, const context *ctx) {
-    SDL_RenderCopy(ctx->renderer, ctx->images[img], nullptr, nullptr);
-}
-
-void draw_background(const context *ctx) {
-    SDL_Rect dest_rect;
-    dest_rect.x = -static_cast<int>(ctx->background_offset) % ctx->background_image_width;
-    dest_rect.y = 0;
-    dest_rect.w = ctx->background_image_width;
-    dest_rect.h = ctx->background_image_height;
-
-    SDL_RenderCopy(ctx->renderer, ctx->images[ctx->background_image], nullptr, &dest_rect);
-}
-
-void draw_cube(const context *ctx) {
-    SDL_Rect rect;
-    rect.w = ctx->cube_size;
-    rect.h = ctx->cube_size;
-    rect.x = ctx->cube_position.x - ctx->cube_size / 2;
-    rect.y = ctx->cube_position.y - ctx->cube_size / 2;
- 
-    if (ctx->is_yellow) {
-        SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 0, 255);
-    } else {
-        SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 255, 255); 
+int load_image(string image_path, context* ctx) {
+    SDL_Texture* texture = IMG_LoadTexture(ctx->renderer, image_path.c_str());
+    if (!texture) {
+        throw runtime_error("Failed to load image: " + image_path + "\nError: " + SDL_GetError());
     }
-    
-    SDL_RenderFillRect(ctx->renderer, &rect);
+
+    ctx->images.push_back(texture);
+    return ctx->images.size() - 1;
 }
 
-void draw_collidables(const context *ctx) {
 
-    for (const auto &collidable : ctx->collidables) {
-
-        if (collidable.enemy) {
-            SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 0, 255);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width/2, collidable.y - collidable.height);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x + collidable.width/2, collidable.y - collidable.height, collidable.x + collidable.width, collidable.y);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width, collidable.y);
-        }
-        else {
-            SDL_SetRenderDrawColor(ctx->renderer, 255, 0, 128, 255);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width/2, collidable.y - collidable.height);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x + collidable.width/2, collidable.y - collidable.height, collidable.x + collidable.width, collidable.y);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width, collidable.y);
-        }
-    }
-}
-
-void draw_text(const context *ctx) {
-    string score_text = "Score: " + to_string(ctx->score);
-    string lives_text = "Lives: " + to_string(ctx->lives);
-
-    const char *s_text = score_text.c_str();
-    SDL_Surface *s_surface = TTF_RenderText_Solid(ctx->font, s_text, {255, 165, 0, 255});
-    SDL_Texture *s_texture = SDL_CreateTextureFromSurface(ctx->renderer, s_surface);
-    SDL_Rect s_destRect = {10, 10, s_surface->w, s_surface->h};
-    SDL_FreeSurface(s_surface);
-    SDL_RenderCopy(ctx->renderer, s_texture, NULL, &s_destRect);
-    SDL_DestroyTexture(s_texture);
-
-    const char *l_text = lives_text.c_str();
-    SDL_Surface *l_surface = TTF_RenderText_Solid(ctx->font, l_text, {255, 165, 0, 255});
-    SDL_Texture *l_texture = SDL_CreateTextureFromSurface(ctx->renderer, l_surface);
-    SDL_Rect l_destRect = {10, 50, l_surface->w, l_surface->h};
-    SDL_FreeSurface(l_surface);
-    SDL_RenderCopy(ctx->renderer, l_texture, NULL, &l_destRect);
-    SDL_DestroyTexture(l_texture);
-}
-*/
 void update_collidables(context *ctx) {
 
     for (auto &collidable : ctx->collidables) {
@@ -114,6 +50,22 @@ bool check_collision(const SDL_Rect& rect1, const SDL_Rect& rect2) {
         rect1.y < rect2.y + rect2.h &&
         rect1.y + rect1.h > rect2.y
     );
+}
+
+void init_collidables(context *ctx) {
+    for (int i = 0; i < ctx->NUMBER_COLLIDABLES; i++) {
+        context::Collidable coin;
+        coin.x = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+        coin.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+        coin.enemy = false;
+        ctx->collidables.push_back(coin);
+
+        context::Collidable enemy;
+        enemy.x = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+        enemy.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+        enemy.enemy = true;
+        ctx->collidables.push_back(enemy);
+    }
 }
 
 extern "C" {
@@ -154,21 +106,7 @@ extern "C" {
     
 }
 
-void main_loop(void *arg) {
-    context *ctx = static_cast<context*>(arg);
-
-    SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 255, 255);
-    SDL_RenderClear(ctx->renderer);
-
-    Renderer::draw_background(ctx);
-
-    if (ctx->lives > 0) {
-        Renderer::draw_cube(ctx);
-    }
-
-    Renderer::draw_collidables(ctx);
-    Renderer::draw_text(ctx);
-
+void handle_collisions(context *ctx) {
     SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
 
     for (auto &collidable : ctx->collidables) {
@@ -208,6 +146,27 @@ void main_loop(void *arg) {
             }
         }
     }
+}
+
+void render_frame(context *ctx) {
+    Renderer::draw_background(ctx);
+
+    if (ctx->lives > 0) {
+        Renderer::draw_cube(ctx);
+    }
+
+    Renderer::draw_collidables(ctx);
+    Renderer::draw_text(ctx);
+}
+
+void main_loop(void *arg) {
+    context *ctx = static_cast<context*>(arg);
+
+    SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 255, 255);
+    SDL_RenderClear(ctx->renderer);
+
+    render_frame(ctx);
+    handle_collisions(ctx);
 
     SDL_RenderPresent(ctx->renderer);
 
@@ -222,25 +181,22 @@ int main(int argc, char *argv[]) {
     ctx.window = SDL_CreateWindow("Endless Runner", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT, 0);
     ctx.renderer = SDL_CreateRenderer(ctx.window, -1, SDL_RENDERER_ACCELERATED);
 
-    ctx.background_image = load_image("./assets/image.png", &ctx);
+    try {
+        ctx.background_image = load_image("./assets/image.png", &ctx);
+    }
+    catch (const exception &e) {
+        cerr << "Error: " << e.what() << endl;
+    }
     SDL_QueryTexture(ctx.images[ctx.background_image], nullptr, nullptr, &ctx.background_image_width, &ctx.background_image_height);
 
-    TTF_Init();
-    ctx.font = TTF_OpenFont("./assets/Ranchers-Regular.ttf", ctx.font_size);
-
-    for (int i = 0; i < 5; i++) {
-        context::Collidable coin;
-        coin.x = static_cast<float>(rand() % static_cast<int>(ctx.WINDOW_WIDTH));
-        coin.y = static_cast<float>(rand() % static_cast<int>(ctx.WINDOW_HEIGHT));
-        coin.enemy = false;
-        ctx.collidables.push_back(coin);
-
-        context::Collidable enemy;
-        enemy.x = static_cast<float>(rand() % static_cast<int>(ctx.WINDOW_WIDTH));
-        enemy.y = static_cast<float>(rand() % static_cast<int>(ctx.WINDOW_HEIGHT));
-        enemy.enemy = true;
-        ctx.collidables.push_back(enemy);
+    try {
+        TTF_Init();
+        ctx.font = TTF_OpenFont("./assets/Ranchers-Regular.ttf", ctx.font_size);
+    } catch (const exception &e) {
+        cerr << "Error: " << e.what() << endl;
     }
+
+    init_collidables(&ctx);
 
     bool running = true;
     SDL_Event event;
