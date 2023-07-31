@@ -5,10 +5,11 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include "context.h"
 #include <emscripten.h> // g++/gcc does not know where this header is, emcc does, so this line should be here only if compiling with emscripten
 
 using namespace std;
-
+/*
 struct context {
     const float WINDOW_WIDTH = 1000; 
     const float WINDOW_HEIGHT = 600; 
@@ -41,8 +42,7 @@ struct context {
     float background_offset = 0.0f;
     float scroll_speed = 1.0f;
 
-    vector<Collidable> coins;
-    vector<Collidable> enemies;
+    vector<Collidable> collidables;
 
     bool prevCollision = false;
 
@@ -53,7 +53,7 @@ struct context {
 
     context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f }, is_yellow(false) {}
 };
-
+*/
 int load_image(string image_path, context *ctx) {
     ctx->images.push_back(IMG_LoadTexture(ctx->renderer, image_path.c_str()));
     return ctx->images.size()-1;
@@ -90,20 +90,21 @@ void draw_cube(const context *ctx) {
 }
 
 void draw_collidables(const context *ctx) {
-    SDL_SetRenderDrawColor(ctx->renderer, 255, 0, 128, 255);
 
-    for (const auto &coin : ctx->coins) {
-        SDL_RenderDrawLine(ctx->renderer, coin.x, coin.y, coin.x + coin.width/2, coin.y - coin.height);
-        SDL_RenderDrawLine(ctx->renderer, coin.x + coin.width/2, coin.y - coin.height, coin.x + coin.width, coin.y);
-        SDL_RenderDrawLine(ctx->renderer, coin.x, coin.y, coin.x + coin.width, coin.y);
-    }
+    for (const auto &collidable : ctx->collidables) {
 
-    SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 0, 255);
-
-    for (const auto &enemy : ctx->enemies) {
-        SDL_RenderDrawLine(ctx->renderer, enemy.x, enemy.y, enemy.x + enemy.width/2, enemy.y - enemy.height);
-        SDL_RenderDrawLine(ctx->renderer, enemy.x + enemy.width/2, enemy.y - enemy.height, enemy.x + enemy.width, enemy.y);
-        SDL_RenderDrawLine(ctx->renderer, enemy.x, enemy.y, enemy.x + enemy.width, enemy.y);
+        if (collidable.enemy) {
+            SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 0, 255);
+            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width/2, collidable.y - collidable.height);
+            SDL_RenderDrawLine(ctx->renderer, collidable.x + collidable.width/2, collidable.y - collidable.height, collidable.x + collidable.width, collidable.y);
+            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width, collidable.y);
+        }
+        else {
+            SDL_SetRenderDrawColor(ctx->renderer, 255, 0, 128, 255);
+            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width/2, collidable.y - collidable.height);
+            SDL_RenderDrawLine(ctx->renderer, collidable.x + collidable.width/2, collidable.y - collidable.height, collidable.x + collidable.width, collidable.y);
+            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width, collidable.y);
+        }
     }
 }
 
@@ -130,21 +131,14 @@ void draw_text(const context *ctx) {
 
 void update_collidables(context *ctx) {
 
-    for (auto &coin : ctx->coins) {
-        coin.x -= ctx->scroll_speed;
-        if (coin.x + coin.width < 0.0f) {
-            // If the coin has scrolled completely out of view, reset its position on the right side with new random value
-            coin.x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-            coin.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-        }
-    }
-    for (auto &enemy : ctx->enemies) {
-        enemy.x -= ctx->scroll_speed;
-        if (enemy.x + enemy.width < 0.0f) {
-            enemy.x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-            enemy.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+    for (auto &collidable : ctx->collidables) {
+        collidable.x -= ctx->scroll_speed;
+        if (collidable.x + collidable.width < 0.0f) {
+            // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
+            collidable.x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+            collidable.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
 
-            enemy.collided = false;
+            collidable.collided = false;
         }
     }
 }
@@ -218,49 +212,42 @@ void main_loop(void *arg) {
     draw_collidables(ctx);
     draw_text(ctx);
 
-    // Check for collision between cube and each coin
     SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
-    for (auto &coin : ctx->coins) {
-        SDL_Rect coinRect = {static_cast<int>(coin.x), static_cast<int>(coin.y - coin.height), static_cast<int>(coin.width), static_cast<int>(coin.height)};
-        
-        if (check_collision(cubeRect, coinRect)) {
-            ctx->score++;
-            coin.x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-            coin.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-        }
-    }
-    for (auto &enemy : ctx->enemies) {
 
-        if (!enemy.collided) { // Only check for collisions if the enemy hasn't collided before
-            SDL_Rect enemyRect = {static_cast<int>(enemy.x), static_cast<int>(enemy.y - enemy.height), static_cast<int>(enemy.width), static_cast<int>(enemy.height)};
+    for (auto &collidable : ctx->collidables) {
+        // Only check for collisions if the collidable hasn't collided before
+        if (!collidable.collided) {
+            SDL_Rect collidableRect = {static_cast<int>(collidable.x), static_cast<int>(collidable.y - collidable.height), static_cast<int>(collidable.width), static_cast<int>(collidable.height)};
             
-            if (check_collision(cubeRect, enemyRect)) {  
-
-                ctx->prevCollision = true;      
-                    
-                // Remove a life only if not colliding with the same object    
-                if (--ctx->lives <= 0) {
-                    ctx->scroll_speed = 0.0f;
+            if (check_collision(cubeRect, collidableRect)) {
+                // Logic for both coins and enemies when collision with cube happens
+                if (collidable.enemy) {
+                    ctx->prevCollision = true;
+                    if (--ctx->lives <= 0) {
+                        ctx->scroll_speed = 0.0f;
+                    }
+                } else {
+                    ctx->score++;
+                    collidable.x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+                    collidable.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
                 }
 
-                // Set the collided flag for this enemy to true to block further detections
-                enemy.collided = true;
-
-            }
-            else {
-                // Cube is not colliding with this enemy
+                // Reset the collided flag for this collidable to block further detections
+                collidable.collided = true;
+            } else {
+                // Cube is not colliding with this collidable
+                // This is to re-enable collision with the same collidable once the cube has already collided with it, and that collidable is still rendered on-screen
                 ctx->prevCollision = false;
             }
-
         }
     }
 
-    // Reset the collided flag for the enemy if the cube is not colliding with it anymore
+    // Reset the collided flag for the collidable if the cube is not colliding with it anymore
     if (!ctx->prevCollision) {
-        for (auto &enemy : ctx->enemies) {
-            SDL_Rect enemyRect = {static_cast<int>(enemy.x), static_cast<int>(enemy.y - enemy.height), static_cast<int>(enemy.width), static_cast<int>(enemy.height)};
-            if (!check_collision(cubeRect, enemyRect)) {
-                enemy.collided = false;
+        for (auto &collidable : ctx->collidables) {
+            SDL_Rect collidableRect = {static_cast<int>(collidable.x), static_cast<int>(collidable.y - collidable.height), static_cast<int>(collidable.width), static_cast<int>(collidable.height)};
+            if (!check_collision(cubeRect, collidableRect)) {
+                collidable.collided = false;
             }
         }
     }
@@ -289,13 +276,13 @@ int main(int argc, char *argv[]) {
         coin.x = static_cast<float>(rand() % static_cast<int>(ctx.WINDOW_WIDTH));
         coin.y = static_cast<float>(rand() % static_cast<int>(ctx.WINDOW_HEIGHT));
         coin.enemy = false;
-        ctx.coins.push_back(coin);
+        ctx.collidables.push_back(coin);
 
         context::Collidable enemy;
         enemy.x = static_cast<float>(rand() % static_cast<int>(ctx.WINDOW_WIDTH));
         enemy.y = static_cast<float>(rand() % static_cast<int>(ctx.WINDOW_HEIGHT));
         enemy.enemy = true;
-        ctx.enemies.push_back(enemy);
+        ctx.collidables.push_back(enemy);
     }
 
     bool running = true;
