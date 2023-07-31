@@ -6,60 +6,17 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include "context.h"
+#include "renderer.h"
 #include <emscripten.h> // g++/gcc does not know where this header is, emcc does, so this line should be here only if compiling with emscripten
 
 using namespace std;
-/*
-struct context {
-    const float WINDOW_WIDTH = 1000; 
-    const float WINDOW_HEIGHT = 600; 
 
-    struct Point {
-        float x, y, z;
-    };
-
-    class Collidable {
-        public:
-            float x; // Horizontal coordinate of top left corner
-            float y; // Vertical coordinate of top right corner
-            float width = 50.0f;
-            float height = 50.0f;
-            bool enemy;
-            bool collided = false;
-    };
-
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-
-    float cube_size = 50.0f;
-    Point cube_position;
-    
-    bool is_yellow;
-
-    vector<SDL_Texture*> images;
-    int background_image, background_image_width, background_image_height;
-
-    float background_offset = 0.0f;
-    float scroll_speed = 1.0f;
-
-    vector<Collidable> collidables;
-
-    bool prevCollision = false;
-
-    int score = 0;
-    int lives = 10;
-    int font_size = 32;
-    TTF_Font *font;
-
-    context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f }, is_yellow(false) {}
-};
-*/
 int load_image(string image_path, context *ctx) {
     ctx->images.push_back(IMG_LoadTexture(ctx->renderer, image_path.c_str()));
     return ctx->images.size()-1;
 }
 
-void draw_image(int img, const context *ctx) {
+/*void draw_image(int img, const context *ctx) {
     SDL_RenderCopy(ctx->renderer, ctx->images[img], nullptr, nullptr);
 }
 
@@ -128,7 +85,7 @@ void draw_text(const context *ctx) {
     SDL_RenderCopy(ctx->renderer, l_texture, NULL, &l_destRect);
     SDL_DestroyTexture(l_texture);
 }
-
+*/
 void update_collidables(context *ctx) {
 
     for (auto &collidable : ctx->collidables) {
@@ -203,14 +160,14 @@ void main_loop(void *arg) {
     SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 255, 255);
     SDL_RenderClear(ctx->renderer);
 
-    draw_background(ctx);
+    Renderer::draw_background(ctx);
 
     if (ctx->lives > 0) {
-        draw_cube(ctx);
+        Renderer::draw_cube(ctx);
     }
 
-    draw_collidables(ctx);
-    draw_text(ctx);
+    Renderer::draw_collidables(ctx);
+    Renderer::draw_text(ctx);
 
     SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
 
