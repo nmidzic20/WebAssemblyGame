@@ -40,10 +40,11 @@ void Renderer::draw_cube(const context* ctx) {
     SDL_RenderFillRect(ctx->renderer, &rect);
 }
 
-void Renderer::draw_collidables(const context* ctx) {
+void Renderer::draw_collidables(context* ctx) {
 
-    for (const auto &collidable : ctx->collidables) {
-        if (collidable.enemy) {
+    for (context::Collidable &collidable : ctx->collidables) {
+        collidable.draw(ctx);
+        /*if (collidable.enemy) {
             SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 0, 255);
             SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width/2, collidable.y - collidable.height);
             SDL_RenderDrawLine(ctx->renderer, collidable.x + collidable.width/2, collidable.y - collidable.height, collidable.x + collidable.width, collidable.y);
@@ -54,7 +55,7 @@ void Renderer::draw_collidables(const context* ctx) {
             SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width/2, collidable.y - collidable.height);
             SDL_RenderDrawLine(ctx->renderer, collidable.x + collidable.width/2, collidable.y - collidable.height, collidable.x + collidable.width, collidable.y);
             SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width, collidable.y);
-        }
+        }*/
     }
 }
 

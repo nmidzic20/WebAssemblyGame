@@ -7,6 +7,7 @@
 #include <SDL2/SDL_ttf.h>
 #include "context.h"
 #include "renderer.h"
+#include "helper.h"
 #include <emscripten.h> // g++/gcc does not know where this header is, emcc does, so this line should be here only if compiling with emscripten
 
 using namespace std;
@@ -42,7 +43,7 @@ void update_background_offset(context *ctx) {
         ctx->background_offset = 0.0f;
     }
 }
-
+/*
 bool check_collision(const SDL_Rect& rect1, const SDL_Rect& rect2) {
     return (
         rect1.x < rect2.x + rect2.w &&
@@ -51,7 +52,7 @@ bool check_collision(const SDL_Rect& rect1, const SDL_Rect& rect2) {
         rect1.y + rect1.h > rect2.y
     );
 }
-
+*/
 void init_collidables(context *ctx) {
     for (int i = 0; i < ctx->NUMBER_COLLIDABLES; i++) {
         context::Collidable coin;
@@ -83,7 +84,7 @@ extern "C" {
                         projectile.y = ctx->cube_position.y;
                         projectile.speed = 5.0f;
                         projectile.active = true;
-                        ctx->projectiles.push_back(projectile);
+                        ctx->collidables.push_back(projectile);
 
                         ctx->lastProjectileFiredTime = currentTime;
                     }
@@ -124,7 +125,12 @@ extern "C" {
 
 void handle_collisions(context *ctx) {
     SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
-
+    
+    for (auto &collidable : ctx->collidables) {
+        collidable.updatePosition(ctx->scroll_speed);
+        collidable.handleCollision(ctx);
+    }
+/*
     for (auto &collidable : ctx->collidables) {
         // Only check for collisions if the collidable hasn't collided before
         if (!collidable.collided) {
@@ -175,12 +181,13 @@ void handle_collisions(context *ctx) {
             }
         }
     }
+    */
 
     // Reset the collided flag for the collidable if the cube is not colliding with it anymore
     if (!ctx->prevCollision) {
         for (auto &collidable : ctx->collidables) {
             SDL_Rect collidableRect = {static_cast<int>(collidable.x), static_cast<int>(collidable.y - collidable.height), static_cast<int>(collidable.width), static_cast<int>(collidable.height)};
-            if (!check_collision(cubeRect, collidableRect)) {
+            if (!Helper::check_collision(cubeRect, collidableRect)) {
                 collidable.collided = false;
             }
         }
@@ -207,7 +214,7 @@ void main_loop(void *arg) {
     render_frame(ctx);
     handle_collisions(ctx);
 
-    for (auto iterator = ctx->projectiles.begin(); iterator != ctx->projectiles.end(); ) {
+    /*for (auto iterator = ctx->projectiles.begin(); iterator != ctx->projectiles.end(); ) {
         context::Projectile &projectile = *iterator;
         if (projectile.active) {
             projectile.x += projectile.speed;
@@ -226,7 +233,7 @@ void main_loop(void *arg) {
         }
         
         iterator++; 
-    }
+    }*/
 
     SDL_RenderPresent(ctx->renderer);
 
