@@ -53,6 +53,7 @@ struct context {
     TTF_Font *font;
 
     GLuint program;
+    SDL_GLContext opengl_context;
 
     context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f }, is_yellow(false) {}
 };
