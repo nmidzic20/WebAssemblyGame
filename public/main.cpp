@@ -64,6 +64,7 @@ void init_collidables(context *ctx) {
         enemy.x = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
         enemy.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
         enemy.enemy = true;
+        enemy.lives = 3;
         ctx->collidables.push_back(enemy);
     }
 }
@@ -71,31 +72,46 @@ void init_collidables(context *ctx) {
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     void handleInput(int key, int state, context* ctx) {
+        float currentTime;
         switch (key) {
+            case ' ': // Space key
+                //if (state == 1)
+                    currentTime = SDL_GetTicks() / 1000.0f;
+                    if (currentTime - ctx->lastProjectileFiredTime >= ctx->PROJECTILE_COOLDOWN_TIME) {
+                        context::Projectile projectile;
+                        projectile.x = ctx->cube_position.x;
+                        projectile.y = ctx->cube_position.y;
+                        projectile.speed = 5.0f;
+                        projectile.active = true;
+                        ctx->projectiles.push_back(projectile);
+
+                        ctx->lastProjectileFiredTime = currentTime;
+                    }
+                break;
             case 'M':
             case 'm':
                 //if (state == 1)
                     ctx->is_yellow = !ctx->is_yellow;
                 break;
-            case 38:
+            case 38: // Up arrow code
             case 'W':
             case 'w':
                 //if (state == 1)
                     ctx->cube_position.y = max(ctx->cube_position.y - 10, ctx->cube_size / 2);
                 break;
-            case 40:
+            case 40: // Down arrow code
             case 'S':
             case 's':
                 //if (state == 1)
                     ctx->cube_position.y = min(ctx->cube_position.y + 10, ctx->WINDOW_HEIGHT - ctx->cube_size / 2);
                 break;
-            case 37:
+            case 37: // Left arrow code
             case 'A':
             case 'a':
                 //if (state == 1)
                     ctx->cube_position.x = max(ctx->cube_position.x - 10, ctx->cube_size / 2);
                 break;
-            case 39:
+            case 39: // Right arrow code
             case 'D':
             case 'd':
                 //if (state == 1)
@@ -137,6 +153,29 @@ void handle_collisions(context *ctx) {
         }
     }
 
+    for (auto &projectile : ctx->projectiles) {
+        if (projectile.active) {
+            SDL_Rect projectileRect = {static_cast<int>(projectile.x), static_cast<int>(projectile.y), 20, 5};
+
+            for (auto &collidable : ctx->collidables) {
+                if (collidable.enemy && collidable.lives > 0) {
+                    SDL_Rect collidableRect = {static_cast<int>(collidable.x), static_cast<int>(collidable.y - collidable.height), static_cast<int>(collidable.width), static_cast<int>(collidable.height)};
+
+                    if (check_collision(projectileRect, collidableRect)) {
+                        collidable.lives--;
+                        projectile.active = false;
+
+                        if (collidable.lives <= 0) {
+                            collidable.x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+                            collidable.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+                            collidable.lives = 3;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Reset the collided flag for the collidable if the cube is not colliding with it anymore
     if (!ctx->prevCollision) {
         for (auto &collidable : ctx->collidables) {
@@ -167,6 +206,27 @@ void main_loop(void *arg) {
 
     render_frame(ctx);
     handle_collisions(ctx);
+
+    for (auto iterator = ctx->projectiles.begin(); iterator != ctx->projectiles.end(); ) {
+        context::Projectile &projectile = *iterator;
+        if (projectile.active) {
+            projectile.x += projectile.speed;
+
+            SDL_SetRenderDrawColor(ctx->renderer, 255, 165, 0, 255);
+            SDL_Rect projectileRect = {static_cast<int>(projectile.x), static_cast<int>(projectile.y), 20, 5};
+            SDL_RenderFillRect(ctx->renderer, &projectileRect);
+
+            if (projectile.x > ctx->WINDOW_WIDTH) {
+                iterator = ctx->projectiles.erase(iterator);
+                cout << "Projectile removed, out of bounds" << endl;
+                // Skip incrementing the iterator, since erase function automatically causes iterator to point to the next element
+                continue; 
+            }
+
+        }
+        
+        iterator++; 
+    }
 
     SDL_RenderPresent(ctx->renderer);
 

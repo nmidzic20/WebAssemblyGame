@@ -12,6 +12,7 @@ struct context {
     const float WINDOW_WIDTH = 1000; 
     const float WINDOW_HEIGHT = 600; 
     const int NUMBER_COLLIDABLES = 5;
+    const float PROJECTILE_COOLDOWN_TIME = 0.2f;
 
     struct Point {
         float x, y, z;
@@ -24,7 +25,15 @@ struct context {
             float width = 50.0f;
             float height = 50.0f;
             bool enemy;
+            int lives;
             bool collided = false;
+    };
+
+    struct Projectile {
+    float x;
+    float y;
+    float speed;
+    bool active;
     };
 
     SDL_Window* window;
@@ -42,6 +51,8 @@ struct context {
     float scroll_speed = 1.0f;
 
     vector<Collidable> collidables;
+    vector<Projectile> projectiles;
+    float lastProjectileFiredTime = 0.0f;
 
     bool prevCollision = false;
 
