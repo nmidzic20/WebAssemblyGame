@@ -25,14 +25,18 @@ int load_image(string image_path, context* ctx) {
 
 void update_collidables(context *ctx) {
 
-    for (auto &collidable : ctx->collidables) {
-        collidable.x -= ctx->scroll_speed;
-        if (collidable.x + collidable.width < 0.0f) {
+    for (context::Collidable *collidable : ctx->collidables) {
+        collidable->x -= ctx->scroll_speed;
+        if (collidable->x + collidable->width < 0.0f) {
             // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
-            collidable.x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-            collidable.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+            collidable->x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+            collidable->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
 
-            collidable.collided = false;
+            collidable->collided = false;
+
+            // Reset enemy lives (enemy might have had lives reduced by projectiles in previous image scroll)
+            if (context::Enemy *enemy = dynamic_cast<context::Enemy *>(collidable))
+                enemy->lives = 3;
         }
     }
 }
@@ -55,17 +59,15 @@ bool check_collision(const SDL_Rect& rect1, const SDL_Rect& rect2) {
 */
 void init_collidables(context *ctx) {
     for (int i = 0; i < ctx->NUMBER_COLLIDABLES; i++) {
-        context::Collidable coin;
-        coin.x = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-        coin.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-        coin.enemy = false;
+        context::Collidable *coin = new context::Collidable;
+        coin->x = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+        coin->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
         ctx->collidables.push_back(coin);
 
-        context::Collidable enemy;
-        enemy.x = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-        enemy.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-        enemy.enemy = true;
-        enemy.lives = 3;
+        context::Enemy *enemy = new context::Enemy;
+        enemy->x = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+        enemy->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+        enemy->lives = 3;
         ctx->collidables.push_back(enemy);
     }
 }
@@ -79,11 +81,11 @@ extern "C" {
                 //if (state == 1)
                     currentTime = SDL_GetTicks() / 1000.0f;
                     if (currentTime - ctx->lastProjectileFiredTime >= ctx->PROJECTILE_COOLDOWN_TIME) {
-                        context::Projectile projectile;
-                        projectile.x = ctx->cube_position.x;
-                        projectile.y = ctx->cube_position.y;
-                        projectile.speed = 5.0f;
-                        projectile.active = true;
+                        context::Projectile *projectile = new context::Projectile;
+                        projectile->x = ctx->cube_position.x;
+                        projectile->y = ctx->cube_position.y;
+                        projectile->speed = 5.0f;
+                        //projectile->active = true;
                         ctx->collidables.push_back(projectile);
 
                         ctx->lastProjectileFiredTime = currentTime;
@@ -126,31 +128,31 @@ extern "C" {
 void handle_collisions(context *ctx) {
     SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
     
-    for (auto &collidable : ctx->collidables) {
-        collidable.updatePosition(ctx->scroll_speed);
-        collidable.handleCollision(ctx);
+    for (context::Collidable *collidable : ctx->collidables) {
+        collidable->updatePosition(ctx->scroll_speed);
+        collidable->handleCollision(ctx);
     }
 /*
     for (auto &collidable : ctx->collidables) {
         // Only check for collisions if the collidable hasn't collided before
-        if (!collidable.collided) {
-            SDL_Rect collidableRect = {static_cast<int>(collidable.x), static_cast<int>(collidable.y - collidable.height), static_cast<int>(collidable.width), static_cast<int>(collidable.height)};
+        if (!collidable->collided) {
+            SDL_Rect collidableRect = {static_cast<int>(collidable->x), static_cast<int>(collidable->y - collidable->height), static_cast<int>(collidable->width), static_cast<int>(collidable->height)};
             
             if (check_collision(cubeRect, collidableRect)) {
                 // Logic for both coins and enemies when collision with cube happens
-                if (collidable.enemy) {
+                if (collidable->enemy) {
                     ctx->prevCollision = true;
                     if (--ctx->lives <= 0) {
                         ctx->scroll_speed = 0.0f;
                     }
                 } else {
                     ctx->score++;
-                    collidable.x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-                    collidable.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+                    collidable->x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+                    collidable->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
                 }
 
                 // Reset the collided flag for this collidable to block further detections
-                collidable.collided = true;
+                collidable->collided = true;
             } else {
                 // Cube is not colliding with this collidable
                 // This is to re-enable collision with the same collidable once the cube has already collided with it, and that collidable is still rendered on-screen
@@ -164,17 +166,17 @@ void handle_collisions(context *ctx) {
             SDL_Rect projectileRect = {static_cast<int>(projectile.x), static_cast<int>(projectile.y), 20, 5};
 
             for (auto &collidable : ctx->collidables) {
-                if (collidable.enemy && collidable.lives > 0) {
-                    SDL_Rect collidableRect = {static_cast<int>(collidable.x), static_cast<int>(collidable.y - collidable.height), static_cast<int>(collidable.width), static_cast<int>(collidable.height)};
+                if (collidable->enemy && collidable->lives > 0) {
+                    SDL_Rect collidableRect = {static_cast<int>(collidable->x), static_cast<int>(collidable->y - collidable->height), static_cast<int>(collidable->width), static_cast<int>(collidable->height)};
 
                     if (check_collision(projectileRect, collidableRect)) {
-                        collidable.lives--;
+                        collidable->lives--;
                         projectile.active = false;
 
-                        if (collidable.lives <= 0) {
-                            collidable.x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-                            collidable.y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-                            collidable.lives = 3;
+                        if (collidable->lives <= 0) {
+                            collidable->x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+                            collidable->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+                            collidable->lives = 3;
                         }
                     }
                 }
@@ -185,10 +187,10 @@ void handle_collisions(context *ctx) {
 
     // Reset the collided flag for the collidable if the cube is not colliding with it anymore
     if (!ctx->prevCollision) {
-        for (auto &collidable : ctx->collidables) {
-            SDL_Rect collidableRect = {static_cast<int>(collidable.x), static_cast<int>(collidable.y - collidable.height), static_cast<int>(collidable.width), static_cast<int>(collidable.height)};
+        for (context::Collidable *collidable : ctx->collidables) {
+            SDL_Rect collidableRect = {static_cast<int>(collidable->x), static_cast<int>(collidable->y - collidable->height), static_cast<int>(collidable->width), static_cast<int>(collidable->height)};
             if (!Helper::check_collision(cubeRect, collidableRect)) {
-                collidable.collided = false;
+                collidable->collided = false;
             }
         }
     }

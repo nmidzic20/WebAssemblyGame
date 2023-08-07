@@ -42,8 +42,8 @@ void Renderer::draw_cube(const context* ctx) {
 
 void Renderer::draw_collidables(context* ctx) {
 
-    for (context::Collidable &collidable : ctx->collidables) {
-        collidable.draw(ctx);
+    for (context::Collidable *collidable : ctx->collidables) {
+        collidable->draw(ctx);
         /*if (collidable.enemy) {
             SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 0, 255);
             SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width/2, collidable.y - collidable.height);
