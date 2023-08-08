@@ -12,66 +12,6 @@
 
 using namespace std;
 
-int load_image(string image_path, context* ctx) {
-    SDL_Texture* texture = IMG_LoadTexture(ctx->renderer, image_path.c_str());
-    if (!texture) {
-        throw runtime_error("Failed to load image: " + image_path + "\nError: " + SDL_GetError());
-    }
-
-    ctx->images.push_back(texture);
-    return ctx->images.size() - 1;
-}
-
-
-void update_collidables(context *ctx) {
-
-    for (context::Collidable *collidable : ctx->collidables) {
-        collidable->x -= ctx->scroll_speed;
-        if (collidable->x + collidable->width < 0.0f) {
-            // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
-            collidable->x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-            collidable->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-
-            collidable->collided = false;
-
-            // Reset enemy lives (enemy might have had lives reduced by projectiles in previous image scroll)
-            if (context::Enemy *enemy = dynamic_cast<context::Enemy *>(collidable))
-                enemy->lives = 3;
-        }
-    }
-}
-
-void update_background_offset(context *ctx) {
-    ctx->background_offset += ctx->scroll_speed;
-    if (ctx->background_offset >= ctx->background_image_width - ctx->WINDOW_WIDTH) {
-        ctx->background_offset = 0.0f;
-    }
-}
-/*
-bool check_collision(const SDL_Rect& rect1, const SDL_Rect& rect2) {
-    return (
-        rect1.x < rect2.x + rect2.w &&
-        rect1.x + rect1.w > rect2.x &&
-        rect1.y < rect2.y + rect2.h &&
-        rect1.y + rect1.h > rect2.y
-    );
-}
-*/
-void init_collidables(context *ctx) {
-    for (int i = 0; i < ctx->NUMBER_COLLIDABLES; i++) {
-        context::Collidable *coin = new context::Collidable;
-        coin->x = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-        coin->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-        ctx->collidables.push_back(coin);
-
-        context::Enemy *enemy = new context::Enemy;
-        enemy->x = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-        enemy->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-        enemy->lives = 3;
-        ctx->collidables.push_back(enemy);
-    }
-}
-
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     void handleInput(int key, int state, context* ctx) {
@@ -81,11 +21,15 @@ extern "C" {
                 //if (state == 1)
                     currentTime = SDL_GetTicks() / 1000.0f;
                     if (currentTime - ctx->lastProjectileFiredTime >= ctx->PROJECTILE_COOLDOWN_TIME) {
-                        context::Projectile *projectile = new context::Projectile;
-                        projectile->x = ctx->cube_position.x;
-                        projectile->y = ctx->cube_position.y;
-                        projectile->speed = 5.0f;
-                        //projectile->active = true;
+                        context::Projectile *projectile = new context::Projectile(
+                            ctx->cube_position.x,
+                            ctx->cube_position.y,
+                            20.0f,
+                            5.0f,
+                            false,
+                            5.0f
+                            //projectile->active = true;
+                        );
                         ctx->collidables.push_back(projectile);
 
                         ctx->lastProjectileFiredTime = currentTime;
@@ -122,16 +66,92 @@ extern "C" {
                 break;
         }
     }
-    
+}
+
+int load_image(string image_path, context* ctx) {
+    SDL_Texture* texture = IMG_LoadTexture(ctx->renderer, image_path.c_str());
+    if (!texture) {
+        throw runtime_error("Failed to load image: " + image_path + "\nError: " + SDL_GetError());
+    }
+
+    ctx->images.push_back(texture);
+    return ctx->images.size() - 1;
+}
+
+void update_collidables(context *ctx) {
+
+    for (context::Collidable *collidable : ctx->collidables) {
+        collidable->update_position(ctx->scroll_speed);
+        if (Helper::is_outside_window_bounds(collidable)) {
+            // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
+            collidable->reset_position(ctx);
+        }
+    }
+    /*
+    for (context::Collidable *collidable : ctx->collidables) {
+        collidable->x -= ctx->scroll_speed;
+        if (collidable->x + collidable->width < 0.0f) {
+            // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
+            collidable->x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+            collidable->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+
+            collidable->collided = false;
+
+            // Reset enemy lives (enemy might have had lives reduced by projectiles in previous image scroll)
+            if (context::Enemy *enemy = dynamic_cast<context::Enemy *>(collidable))
+                enemy->lives = 3;
+        }
+    }
+    */
+}
+
+void update_background_offset(context *ctx) {
+    ctx->background_offset += ctx->scroll_speed;
+    if (ctx->background_offset >= ctx->background_image_width - ctx->WINDOW_WIDTH) {
+        ctx->background_offset = 0.0f;
+    }
+}
+/*
+bool check_collision(const SDL_Rect& rect1, const SDL_Rect& rect2) {
+    return (
+        rect1.x < rect2.x + rect2.w &&
+        rect1.x + rect1.w > rect2.x &&
+        rect1.y < rect2.y + rect2.h &&
+        rect1.y + rect1.h > rect2.y
+    );
+}
+*/
+void init_collidables(context *ctx) {
+    for (int i = 0; i < ctx->NUMBER_COLLIDABLES; i++) {
+        context::Collidable *coin = new context::Collidable(
+            static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH)),
+            static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT)),
+            50.0f,
+            50.0f,
+            false
+        );
+        ctx->collidables.push_back(coin);
+
+        context::Enemy *enemy = new context::Enemy(
+            static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH)),
+            static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT)),
+            50.0f,
+            50.0f,
+            false,
+            3
+        );
+        ctx->collidables.push_back(enemy);
+    }
 }
 
 void handle_collisions(context *ctx) {
-    SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
+    //SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
     
     for (context::Collidable *collidable : ctx->collidables) {
-        collidable->updatePosition(ctx->scroll_speed);
-        collidable->handleCollision(ctx);
+        collidable->update_position(ctx->scroll_speed);
+        collidable->handle_collision(ctx);
     }
+    Helper::reset_collided_flag(ctx);
 /*
     for (auto &collidable : ctx->collidables) {
         // Only check for collisions if the collidable hasn't collided before
@@ -183,7 +203,7 @@ void handle_collisions(context *ctx) {
             }
         }
     }
-    */
+    
 
     // Reset the collided flag for the collidable if the cube is not colliding with it anymore
     if (!ctx->prevCollision) {
@@ -193,7 +213,7 @@ void handle_collisions(context *ctx) {
                 collidable->collided = false;
             }
         }
-    }
+    }*/
 }
 
 void render_frame(context *ctx) {

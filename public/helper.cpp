@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include "context.h"
 #include "helper.h"
 
 bool Helper::check_collision(const SDL_Rect &rect1, const SDL_Rect &rect2) {
@@ -8,4 +9,22 @@ bool Helper::check_collision(const SDL_Rect &rect1, const SDL_Rect &rect2) {
         rect1.y < rect2.y + rect2.h &&
         rect1.y + rect1.h > rect2.y
     );
+}
+
+bool Helper::is_outside_window_bounds(context::Collidable *collidable) {
+    return collidable->x + collidable->width < 0.0f;
+}
+
+void Helper::reset_collided_flag(const context *ctx) {
+    SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
+
+    // Reset the collided flag for the collidable if the cube is not colliding with it anymore
+    if (!ctx->prevCollision) {
+        for (context::Collidable *collidable : ctx->collidables) {
+            SDL_Rect collidableRect = {static_cast<int>(collidable->x), static_cast<int>(collidable->y - collidable->height), static_cast<int>(collidable->width), static_cast<int>(collidable->height)};
+            if (!Helper::check_collision(cubeRect, collidableRect)) {
+                collidable->collided = false;
+            }
+        }
+    }
 }

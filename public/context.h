@@ -2,12 +2,14 @@
 #define CONTEXT_H
 
 #include <vector>
+#include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-#include "helper.h"
 
-using namespace std;
+namespace Helper {
+    bool check_collision(const SDL_Rect &rect1, const SDL_Rect &rect2);
+}
 
 struct context {
     const float WINDOW_WIDTH = 1000; 
@@ -23,11 +25,25 @@ struct context {
         public:
             float x; // Horizontal coordinate of top left corner
             float y; // Vertical coordinate of top right corner
-            float width = 50.0f;
-            float height = 50.0f;
-            bool collided = false;
+            float width;
+            float height;
+            bool collided;
 
-            virtual void updatePosition(float scroll_speed) {
+            Collidable(float _x, float _y, float _width, float _height, bool _collided) : x(_x), y(_y), width(_width), height(_height), collided(_collided) {}
+
+            void reset_position(const context *ctx) {
+                x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
+                y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
+
+                collided = false;
+
+                // Reset enemy lives (enemy might have had lives reduced by projectiles in previous image scroll)
+                if (context::Enemy *enemy = dynamic_cast<context::Enemy *>(this)) {
+                    enemy->lives = 3;
+                }
+            }
+
+            virtual void update_position(float scroll_speed) {
                 x -= scroll_speed;
             }
 
@@ -38,7 +54,7 @@ struct context {
                 SDL_RenderDrawLine(ctx->renderer, x, y, x + width, y);
             }
 
-            virtual void handleCollision(context *ctx) {
+            virtual void handle_collision(context *ctx) {
                 SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
 
                 if (!collided) {
@@ -65,6 +81,8 @@ struct context {
         public:
             int lives;
 
+            Enemy(float _x, float _y, float _width, float _height, float _collided, int _lives) : Collidable(_x, _y, _width, _height, _collided), lives(_lives) {}
+
             virtual void draw(const context *ctx) override {
                 SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 0, 255);
                 SDL_RenderDrawLine(ctx->renderer, x, y, x + width/2, y - height);
@@ -72,7 +90,7 @@ struct context {
                 SDL_RenderDrawLine(ctx->renderer, x, y, x + width, y);
             }
 
-            virtual void handleCollision(context *ctx) override {
+            virtual void handle_collision(context *ctx) override {
                 SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
 
                 if (!collided) {
@@ -101,20 +119,22 @@ struct context {
             float speed;
             //bool active;
 
+            Projectile(float _x, float _y, float _width, float _height, float _collided, int _speed) : Collidable(_x, _y, _width, _height, _collided), speed(_speed) {}
+
             virtual void draw(const context *ctx) override {
                 //if (active) {
                     x += speed;
 
                     SDL_SetRenderDrawColor(ctx->renderer, 255, 165, 0, 255);
-                    SDL_Rect projectileRect = {static_cast<int>(x), static_cast<int>(y), 20, 5};
+                    SDL_Rect projectileRect = {static_cast<int>(x), static_cast<int>(y), static_cast<int>(width), static_cast<int>(height)};
                     SDL_RenderFillRect(ctx->renderer, &projectileRect);
 
                 //}
             }
 
-            virtual void handleCollision(context *ctx) override {
+            virtual void handle_collision(context *ctx) override {
                 //if (active) {
-                    SDL_Rect projectileRect = {static_cast<int>(x), static_cast<int>(y), 20, 5};
+                    SDL_Rect projectileRect = {static_cast<int>(x), static_cast<int>(y), static_cast<int>(width), static_cast<int>(height)};
 
                     for (Collidable *collidable : ctx->collidables) {
                         if (Enemy *enemy = dynamic_cast<Enemy *>(collidable)) {
@@ -127,17 +147,17 @@ struct context {
                                     if (Helper::check_collision(projectileRect, collidableRect)) {
                                         enemy->lives--;
                                         //active = false;
-                                        cout << "enemy collided, lives now " << enemy->lives << endl;
+                                        std::cout << "enemy collided, lives now " << enemy->lives << std::endl;
 
                                         // Remove projectile which hit enemy
                                         auto iterator = std::find(ctx->collidables.begin(), ctx->collidables.end(), this);
                                         if (iterator != ctx->collidables.end()) {
-                                            cout << "TESR" << endl;
+                                            std::cout << "TESR" << std::endl;
                                             ctx->collidables.erase(iterator);
                                         }
 
                                         if (enemy->lives <= 0) {
-                                            cout << "Lives 0 or below" << endl;
+                                            std::cout << "Lives 0 or below" << std::endl;
                                             enemy->x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
                                             enemy->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
                                             enemy->lives = 3;
@@ -175,13 +195,13 @@ struct context {
     
     bool is_yellow;
 
-    vector<SDL_Texture*> images;
+    std::vector<SDL_Texture*> images;
     int background_image, background_image_width, background_image_height;
 
     float background_offset = 0.0f;
     float scroll_speed = 1.0f;
 
-    vector<Collidable *> collidables;
+    std::vector<Collidable *> collidables;
     //vector<Projectile> projectiles;
     float lastProjectileFiredTime = 0.0f;
 
