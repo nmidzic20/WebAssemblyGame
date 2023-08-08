@@ -7,6 +7,8 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "collidable.h"
+
 namespace Helper {
     bool check_collision(const SDL_Rect &rect1, const SDL_Rect &rect2);
 }
@@ -21,7 +23,7 @@ struct context {
         float x, y, z;
     };
 
-    class Collidable {
+    /*class Collidable {
         public:
             float x; // Horizontal coordinate of top left corner
             float y; // Vertical coordinate of top right corner
@@ -170,7 +172,7 @@ struct context {
                                 // Projectile is not colliding with this collidable
                                 // This is to re-enable collision with the same collidable once the cube has already collided with it, and that collidable is still rendered on-screen
                                 ctx->prevCollision = false;
-                            }*/
+                            }
                         }
                     }
 
@@ -185,7 +187,7 @@ struct context {
                     
                 //}
             }
-        };
+        };*/
 
     SDL_Window* window;
     SDL_Renderer* renderer;

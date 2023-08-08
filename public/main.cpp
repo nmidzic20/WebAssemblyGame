@@ -2,12 +2,18 @@
 #include <cstdio>
 #include <cmath>
 #include <vector>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+
 #include "context.h"
 #include "renderer.h"
 #include "helper.h"
+#include "collidable.h"
+#include "enemy.h"
+#include "projectile.h"
+
 #include <emscripten.h> // g++/gcc does not know where this header is, emcc does, so this line should be here only if compiling with emscripten
 
 using namespace std;
@@ -21,7 +27,7 @@ extern "C" {
                 //if (state == 1)
                     currentTime = SDL_GetTicks() / 1000.0f;
                     if (currentTime - ctx->lastProjectileFiredTime >= ctx->PROJECTILE_COOLDOWN_TIME) {
-                        context::Projectile *projectile = new context::Projectile(
+                        Projectile *projectile = new Projectile(
                             ctx->cube_position.x,
                             ctx->cube_position.y,
                             20.0f,
@@ -80,7 +86,7 @@ int load_image(string image_path, context* ctx) {
 
 void update_collidables(context *ctx) {
 
-    for (context::Collidable *collidable : ctx->collidables) {
+    for (Collidable *collidable : ctx->collidables) {
         collidable->update_position(ctx->scroll_speed);
         if (Helper::is_outside_window_bounds(collidable)) {
             // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
@@ -88,7 +94,7 @@ void update_collidables(context *ctx) {
         }
     }
     /*
-    for (context::Collidable *collidable : ctx->collidables) {
+    for (Collidable *collidable : ctx->collidables) {
         collidable->x -= ctx->scroll_speed;
         if (collidable->x + collidable->width < 0.0f) {
             // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
@@ -98,7 +104,7 @@ void update_collidables(context *ctx) {
             collidable->collided = false;
 
             // Reset enemy lives (enemy might have had lives reduced by projectiles in previous image scroll)
-            if (context::Enemy *enemy = dynamic_cast<context::Enemy *>(collidable))
+            if (Enemy *enemy = dynamic_cast<Enemy *>(collidable))
                 enemy->lives = 3;
         }
     }
@@ -123,7 +129,7 @@ bool check_collision(const SDL_Rect& rect1, const SDL_Rect& rect2) {
 */
 void init_collidables(context *ctx) {
     for (int i = 0; i < ctx->NUMBER_COLLIDABLES; i++) {
-        context::Collidable *coin = new context::Collidable(
+        Collidable *coin = new Collidable(
             static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH)),
             static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT)),
             50.0f,
@@ -132,7 +138,7 @@ void init_collidables(context *ctx) {
         );
         ctx->collidables.push_back(coin);
 
-        context::Enemy *enemy = new context::Enemy(
+        Enemy *enemy = new Enemy(
             static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH)),
             static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT)),
             50.0f,
@@ -147,7 +153,7 @@ void init_collidables(context *ctx) {
 void handle_collisions(context *ctx) {
     //SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
     
-    for (context::Collidable *collidable : ctx->collidables) {
+    for (Collidable *collidable : ctx->collidables) {
         collidable->update_position(ctx->scroll_speed);
         collidable->handle_collision(ctx);
     }
@@ -207,7 +213,7 @@ void handle_collisions(context *ctx) {
 
     // Reset the collided flag for the collidable if the cube is not colliding with it anymore
     if (!ctx->prevCollision) {
-        for (context::Collidable *collidable : ctx->collidables) {
+        for (Collidable *collidable : ctx->collidables) {
             SDL_Rect collidableRect = {static_cast<int>(collidable->x), static_cast<int>(collidable->y - collidable->height), static_cast<int>(collidable->width), static_cast<int>(collidable->height)};
             if (!Helper::check_collision(cubeRect, collidableRect)) {
                 collidable->collided = false;
@@ -237,7 +243,7 @@ void main_loop(void *arg) {
     handle_collisions(ctx);
 
     /*for (auto iterator = ctx->projectiles.begin(); iterator != ctx->projectiles.end(); ) {
-        context::Projectile &projectile = *iterator;
+        Projectile &projectile = *iterator;
         if (projectile.active) {
             projectile.x += projectile.speed;
 
