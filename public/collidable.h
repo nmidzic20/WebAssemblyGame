@@ -19,5 +19,5 @@ class Collidable {
         virtual void handle_collision(context *ctx);
 };
 
-#endif // COLLIDABLE_H
+#endif
 

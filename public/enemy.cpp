@@ -1,6 +1,5 @@
-#include "enemy.h"
 #include <SDL2/SDL.h>
-
+#include "enemy.h"
 #include "context.h"
 
 Enemy::Enemy(float _x, float _y, float _width, float _height, float _collided, int _lives)

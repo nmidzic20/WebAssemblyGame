@@ -2,9 +2,11 @@
 #include <cstdio>
 #include <cmath>
 #include <vector>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+
 #include "context.h"
 #include "renderer.h"
 
@@ -30,13 +32,8 @@ void Renderer::draw_cube(const context* ctx) {
     rect.h = ctx->cube_size;
     rect.x = ctx->cube_position.x - ctx->cube_size / 2;
     rect.y = ctx->cube_position.y - ctx->cube_size / 2;
- 
-    if (ctx->is_yellow) {
-        SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 0, 255);
-    } else {
-        SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 255, 255); 
-    }
-    
+
+    SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 255, 255); 
     SDL_RenderFillRect(ctx->renderer, &rect);
 }
 
@@ -44,18 +41,6 @@ void Renderer::draw_collidables(context* ctx) {
 
     for (Collidable *collidable : ctx->collidables) {
         collidable->draw(ctx);
-        /*if (collidable.enemy) {
-            SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 0, 255);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width/2, collidable.y - collidable.height);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x + collidable.width/2, collidable.y - collidable.height, collidable.x + collidable.width, collidable.y);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width, collidable.y);
-        }
-        else {
-            SDL_SetRenderDrawColor(ctx->renderer, 255, 0, 128, 255);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width/2, collidable.y - collidable.height);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x + collidable.width/2, collidable.y - collidable.height, collidable.x + collidable.width, collidable.y);
-            SDL_RenderDrawLine(ctx->renderer, collidable.x, collidable.y, collidable.x + collidable.width, collidable.y);
-        }*/
     }
 }
 

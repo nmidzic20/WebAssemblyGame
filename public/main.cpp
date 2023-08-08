@@ -14,61 +14,45 @@
 #include "enemy.h"
 #include "projectile.h"
 
-#include <emscripten.h> // g++/gcc does not know where this header is, emcc does, so this line should be here only if compiling with emscripten
+// g++/gcc does not know where this header is, emcc does, so this line should be here only if compiling with emscripten
+#include <emscripten.h>
 
 using namespace std;
 
+int load_image(string image_path, context *ctx);
+void init_collidables(context *ctx);
+void init_projectiles(context *ctx);
+void update_collidables(context *ctx);
+void update_background_offset(context *ctx);
+void handle_collisions(context *ctx);
+void render_frame(context *ctx);
+
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
-    void handleInput(int key, int state, context* ctx) {
-        float currentTime;
+    void handleInput(int key, int state, context *ctx) {
         switch (key) {
-            case ' ': // Space key
-                //if (state == 1)
-                    currentTime = SDL_GetTicks() / 1000.0f;
-                    if (currentTime - ctx->lastProjectileFiredTime >= ctx->PROJECTILE_COOLDOWN_TIME) {
-                        Projectile *projectile = new Projectile(
-                            ctx->cube_position.x,
-                            ctx->cube_position.y,
-                            20.0f,
-                            5.0f,
-                            false,
-                            5.0f
-                            //projectile->active = true;
-                        );
-                        ctx->collidables.push_back(projectile);
-
-                        ctx->lastProjectileFiredTime = currentTime;
-                    }
-                break;
-            case 'M':
-            case 'm':
-                //if (state == 1)
-                    ctx->is_yellow = !ctx->is_yellow;
+            case ' ':
+                init_projectiles(ctx);
                 break;
             case 38: // Up arrow code
             case 'W':
             case 'w':
-                //if (state == 1)
-                    ctx->cube_position.y = max(ctx->cube_position.y - 10, ctx->cube_size / 2);
+                ctx->cube_position.y = max(ctx->cube_position.y - 10, ctx->cube_size / 2);
                 break;
             case 40: // Down arrow code
             case 'S':
             case 's':
-                //if (state == 1)
-                    ctx->cube_position.y = min(ctx->cube_position.y + 10, ctx->WINDOW_HEIGHT - ctx->cube_size / 2);
+                ctx->cube_position.y = min(ctx->cube_position.y + 10, ctx->WINDOW_HEIGHT - ctx->cube_size / 2);
                 break;
             case 37: // Left arrow code
             case 'A':
             case 'a':
-                //if (state == 1)
-                    ctx->cube_position.x = max(ctx->cube_position.x - 10, ctx->cube_size / 2);
+                ctx->cube_position.x = max(ctx->cube_position.x - 10, ctx->cube_size / 2);
                 break;
             case 39: // Right arrow code
             case 'D':
             case 'd':
-                //if (state == 1)
-                    ctx->cube_position.x = min(ctx->cube_position.x + 10, ctx->WINDOW_WIDTH - ctx->cube_size / 2);
+                ctx->cube_position.x = min(ctx->cube_position.x + 10, ctx->WINDOW_WIDTH - ctx->cube_size / 2);
                 break;
         }
     }
@@ -84,49 +68,6 @@ int load_image(string image_path, context* ctx) {
     return ctx->images.size() - 1;
 }
 
-void update_collidables(context *ctx) {
-
-    for (Collidable *collidable : ctx->collidables) {
-        collidable->update_position(ctx->scroll_speed);
-        if (Helper::is_outside_window_bounds(collidable)) {
-            // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
-            collidable->reset_position(ctx);
-        }
-    }
-    /*
-    for (Collidable *collidable : ctx->collidables) {
-        collidable->x -= ctx->scroll_speed;
-        if (collidable->x + collidable->width < 0.0f) {
-            // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
-            collidable->x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-            collidable->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-
-            collidable->collided = false;
-
-            // Reset enemy lives (enemy might have had lives reduced by projectiles in previous image scroll)
-            if (Enemy *enemy = dynamic_cast<Enemy *>(collidable))
-                enemy->lives = 3;
-        }
-    }
-    */
-}
-
-void update_background_offset(context *ctx) {
-    ctx->background_offset += ctx->scroll_speed;
-    if (ctx->background_offset >= ctx->background_image_width - ctx->WINDOW_WIDTH) {
-        ctx->background_offset = 0.0f;
-    }
-}
-/*
-bool check_collision(const SDL_Rect& rect1, const SDL_Rect& rect2) {
-    return (
-        rect1.x < rect2.x + rect2.w &&
-        rect1.x + rect1.w > rect2.x &&
-        rect1.y < rect2.y + rect2.h &&
-        rect1.y + rect1.h > rect2.y
-    );
-}
-*/
 void init_collidables(context *ctx) {
     for (int i = 0; i < ctx->NUMBER_COLLIDABLES; i++) {
         Collidable *coin = new Collidable(
@@ -150,76 +91,49 @@ void init_collidables(context *ctx) {
     }
 }
 
+void init_projectiles(context *ctx) {
+    float currentTime = SDL_GetTicks() / 1000.0f;
+    if (currentTime - ctx->lastProjectileFiredTime >= ctx->PROJECTILE_COOLDOWN_TIME) {
+        Projectile *projectile = new Projectile(
+            ctx->cube_position.x,
+            ctx->cube_position.y,
+            20.0f,
+            5.0f,
+            false,
+            5.0f
+            //projectile->active = true;
+        );
+        ctx->collidables.push_back(projectile);
+
+        ctx->lastProjectileFiredTime = currentTime;
+    }
+}
+
+void update_collidables(context *ctx) {
+
+    for (Collidable *collidable : ctx->collidables) {
+        collidable->update_position(ctx->scroll_speed);
+        if (Helper::is_outside_window_bounds(collidable)) {
+            // If the collidable has scrolled completely out of view, reset its position on the right side with new random value
+            collidable->reset_position(ctx);
+        }
+    }
+}
+
+void update_background_offset(context *ctx) {
+    ctx->background_offset += ctx->scroll_speed;
+    if (ctx->background_offset >= ctx->background_image_width - ctx->WINDOW_WIDTH) {
+        ctx->background_offset = 0.0f;
+    }
+}
+
 void handle_collisions(context *ctx) {
-    //SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
     
     for (Collidable *collidable : ctx->collidables) {
         collidable->update_position(ctx->scroll_speed);
         collidable->handle_collision(ctx);
     }
     Helper::reset_collided_flag(ctx);
-/*
-    for (auto &collidable : ctx->collidables) {
-        // Only check for collisions if the collidable hasn't collided before
-        if (!collidable->collided) {
-            SDL_Rect collidableRect = {static_cast<int>(collidable->x), static_cast<int>(collidable->y - collidable->height), static_cast<int>(collidable->width), static_cast<int>(collidable->height)};
-            
-            if (check_collision(cubeRect, collidableRect)) {
-                // Logic for both coins and enemies when collision with cube happens
-                if (collidable->enemy) {
-                    ctx->prevCollision = true;
-                    if (--ctx->lives <= 0) {
-                        ctx->scroll_speed = 0.0f;
-                    }
-                } else {
-                    ctx->score++;
-                    collidable->x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-                    collidable->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-                }
-
-                // Reset the collided flag for this collidable to block further detections
-                collidable->collided = true;
-            } else {
-                // Cube is not colliding with this collidable
-                // This is to re-enable collision with the same collidable once the cube has already collided with it, and that collidable is still rendered on-screen
-                ctx->prevCollision = false;
-            }
-        }
-    }
-
-    for (auto &projectile : ctx->projectiles) {
-        if (projectile.active) {
-            SDL_Rect projectileRect = {static_cast<int>(projectile.x), static_cast<int>(projectile.y), 20, 5};
-
-            for (auto &collidable : ctx->collidables) {
-                if (collidable->enemy && collidable->lives > 0) {
-                    SDL_Rect collidableRect = {static_cast<int>(collidable->x), static_cast<int>(collidable->y - collidable->height), static_cast<int>(collidable->width), static_cast<int>(collidable->height)};
-
-                    if (check_collision(projectileRect, collidableRect)) {
-                        collidable->lives--;
-                        projectile.active = false;
-
-                        if (collidable->lives <= 0) {
-                            collidable->x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
-                            collidable->y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
-                            collidable->lives = 3;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-
-    // Reset the collided flag for the collidable if the cube is not colliding with it anymore
-    if (!ctx->prevCollision) {
-        for (Collidable *collidable : ctx->collidables) {
-            SDL_Rect collidableRect = {static_cast<int>(collidable->x), static_cast<int>(collidable->y - collidable->height), static_cast<int>(collidable->width), static_cast<int>(collidable->height)};
-            if (!Helper::check_collision(cubeRect, collidableRect)) {
-                collidable->collided = false;
-            }
-        }
-    }*/
 }
 
 void render_frame(context *ctx) {
@@ -241,27 +155,6 @@ void main_loop(void *arg) {
 
     render_frame(ctx);
     handle_collisions(ctx);
-
-    /*for (auto iterator = ctx->projectiles.begin(); iterator != ctx->projectiles.end(); ) {
-        Projectile &projectile = *iterator;
-        if (projectile.active) {
-            projectile.x += projectile.speed;
-
-            SDL_SetRenderDrawColor(ctx->renderer, 255, 165, 0, 255);
-            SDL_Rect projectileRect = {static_cast<int>(projectile.x), static_cast<int>(projectile.y), 20, 5};
-            SDL_RenderFillRect(ctx->renderer, &projectileRect);
-
-            if (projectile.x > ctx->WINDOW_WIDTH) {
-                iterator = ctx->projectiles.erase(iterator);
-                cout << "Projectile removed, out of bounds" << endl;
-                // Skip incrementing the iterator, since erase function automatically causes iterator to point to the next element
-                continue; 
-            }
-
-        }
-        
-        iterator++; 
-    }*/
 
     SDL_RenderPresent(ctx->renderer);
 

@@ -13,4 +13,4 @@ class Enemy : public Collidable {
         virtual void handle_collision(context *ctx) override;
 };
 
-#endif // ENEMY_H
+#endif

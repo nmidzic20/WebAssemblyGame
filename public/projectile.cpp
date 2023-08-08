@@ -1,8 +1,6 @@
-#include "projectile.h"
-
 #include "context.h"
+#include "projectile.h"
 #include "enemy.h"
-
 
 Projectile::Projectile(float _x, float _y, float _width, float _height, float _collided, int _speed)
     : Collidable(_x, _y, _width, _height, _collided), speed(_speed) {}

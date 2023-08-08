@@ -13,5 +13,5 @@ class Projectile : public Collidable {
         virtual void handle_collision(context *ctx) override;
 };
 
-#endif // PROJECTILE_H
+#endif
 
