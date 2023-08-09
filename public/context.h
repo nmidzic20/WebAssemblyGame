@@ -20,14 +20,23 @@ struct context {
     const float PROJECTILE_COOLDOWN_TIME = 0.2f;
 
     struct Point {
-        float x, y, z;
+        float x, y;
     };
 
-    SDL_Window* window;
-    SDL_Renderer* renderer;
+    struct Text {
+        std::string text;
+        SDL_Color color;
+        Point position;
+    };
+
+    SDL_Window *window;
+    SDL_Renderer *renderer;
 
     float cube_size = 50.0f;
     Point cube_position;
+    bool prevCollision = false;
+
+    float lastProjectileFiredTime = 0.0f;
     
     std::vector<SDL_Texture*> images;
     int background_image, background_image_width, background_image_height;
@@ -37,16 +46,12 @@ struct context {
 
     std::vector<Collidable *> collidables;
 
-    float lastProjectileFiredTime = 0.0f;
-
-    bool prevCollision = false;
-
     int score = 0;
     int lives = 10;
     int font_size = 32;
     TTF_Font *font;
 
-    context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0.0f } {}
+    context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 } {}
 
     ~context() {
         for (Collidable* collidable : collidables) {

@@ -137,14 +137,16 @@ void handle_collisions(context *ctx) {
 }
 
 void render_frame(context *ctx) {
+
     Renderer::draw_background(ctx);
-
-    if (ctx->lives > 0) {
-        Renderer::draw_cube(ctx);
-    }
-
+    Renderer::draw_cube(ctx);
     Renderer::draw_collidables(ctx);
-    Renderer::draw_text(ctx);
+
+    if (Helper::is_game_over(ctx)) {
+        Renderer::draw_game_over(ctx);
+    } else {
+        Renderer::draw_score(ctx);
+    }
 }
 
 void main_loop(void *arg) {

@@ -28,3 +28,7 @@ void Helper::reset_collided_flag(const context *ctx) {
         }
     }
 }
+
+bool Helper::is_game_over(const context *ctx) {
+    return ctx->lives <= 0;
+}

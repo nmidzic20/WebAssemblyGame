@@ -25,10 +25,7 @@ void Enemy::handle_collision(context *ctx) {
 
         if (Helper::check_collision(cubeRect, collidableRect)) {
             ctx->prevCollision = true;
-            if (--ctx->lives <= 0) {
-                ctx->scroll_speed = 0.0f;
-            }
-
+            --ctx->lives;
             collided = true;
         } else {
             ctx->prevCollision = false;
