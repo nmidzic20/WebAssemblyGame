@@ -99,6 +99,7 @@ void Renderer::draw_game_over(context *ctx) {
     text = { restart, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT + 1.5f * textHeight) / 2 } };
     Renderer::draw_text(ctx, text);
 
+    // Restart game when hovering over Restart text
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
 
