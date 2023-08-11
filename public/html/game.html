@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Game</title>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <header>
+      <div>#nav#</div>
+      <h1>Game</h1>
+    </header>
+    <main>
+      <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </main>
+    <footer></footer>
+    <script type="text/javascript">
+      var Module = {};
+
+      if (!Module.canvas) {
+        Module.canvas = document.getElementById("canvas");
+      }
+      loadIndexJS();
+
+      function loadIndexJS() {
+        console.log("Loading index.js");
+
+        var existingScript = document.querySelector("script[src='index.js']");
+        if (existingScript) {
+          console.log("Remove");
+          existingScript.remove();
+        }
+
+        var script = document.createElement("script");
+        script.src = "index.js";
+        document.head.appendChild(script);
+        console.log("Loaded index.js");
+      }
+    </script>
+  </body>
+</html>
