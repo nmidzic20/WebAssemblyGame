@@ -162,6 +162,19 @@ void main_loop(void *arg) {
 
     update_background_offset(ctx);
     update_collidables(ctx);
+
+    if (Helper::is_game_over(ctx) && !ctx->gameDataStored) {
+        ctx->gameDataStored = !ctx->gameDataStored;
+        EM_ASM_({
+            fetch('/save_score', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ score: $0 }),
+            });
+        }, ctx->score);
+    }
 }
 
 int main(int argc, char *argv[]) {

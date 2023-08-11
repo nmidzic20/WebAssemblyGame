@@ -51,7 +51,9 @@ struct context {
     int font_size = 32;
     TTF_Font *font;
 
-    context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 } {}
+    bool gameDataStored;
+
+    context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 }, gameDataStored(false) {}
 
     ~context() {
         for (Collidable* collidable : collidables) {

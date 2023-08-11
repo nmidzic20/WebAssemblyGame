@@ -108,6 +108,7 @@ void Renderer::draw_game_over(context *ctx) {
             ctx->lives = 10;
             ctx->score = 0;
             ctx->scroll_speed = 1.0f;
+            ctx->gameDataStored = false;
     }
 }
 
