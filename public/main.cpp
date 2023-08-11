@@ -7,12 +7,12 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "context.h"
-#include "renderer.h"
-#include "helper.h"
-#include "collidable.h"
-#include "enemy.h"
-#include "projectile.h"
+#include "game/context.h"
+#include "game/renderer.h"
+#include "game/helper.h"
+#include "game/collidable.h"
+#include "game/enemy.h"
+#include "game/projectile.h"
 
 // g++/gcc does not know where this header is, emcc does, so this line should be here only if compiling with emscripten
 #include <emscripten.h>

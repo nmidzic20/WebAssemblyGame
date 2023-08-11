@@ -19,16 +19,21 @@ db.run(`
 `);
 
 app.get("/", (req, res) => {
-  res.redirect("/game");
+  res.redirect("/play");
 });
 
-app.get("/game", async (req, res) => {
-  const gameHtml = await loadPage("game");
-  res.send(gameHtml);
+app.get("/play", async (req, res) => {
+  const playHtml = await loadPage("play");
+  res.send(playHtml);
 });
 
 app.get("/leaderboard", async (req, res) => {
-  const leaderboardHtml = await loadPage("leaderboard");
+  const scores = await getScoresFromDatabase();
+  const scoresTable = generateScoresTable(scores);
+
+  let leaderboardHtml = await loadPage("leaderboard");
+  leaderboardHtml = leaderboardHtml.replace("#content#", scoresTable);
+
   res.send(leaderboardHtml);
 });
 
@@ -59,4 +64,27 @@ async function loadPage(pageTitle) {
 
 function loadHTML(path) {
   return fs.readFile(__dirname + "/public/html/" + path + ".html", "UTF-8");
+}
+
+async function getScoresFromDatabase() {
+  return new Promise((resolve, reject) => {
+    db.all("SELECT * FROM scores", (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+}
+
+function generateScoresTable(scores) {
+  let tableHtml = "<table><tr><th>ID</th><th>Score</th></tr>";
+
+  for (const score of scores) {
+    tableHtml += `<tr><td>${score.id}</td><td>${score.score}</td></tr>`;
+  }
+
+  tableHtml += "</table>";
+  return tableHtml;
 }

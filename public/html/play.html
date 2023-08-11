@@ -24,14 +24,14 @@
       function loadIndexJS() {
         console.log("Loading index.js");
 
-        var existingScript = document.querySelector("script[src='index.js']");
+        var existingScript = document.querySelector("script[src='/index.js']");
         if (existingScript) {
           console.log("Remove");
           existingScript.remove();
         }
 
         var script = document.createElement("script");
-        script.src = "index.js";
+        script.src = "/index.js";
         document.head.appendChild(script);
         console.log("Loaded index.js");
       }
