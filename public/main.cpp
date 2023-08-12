@@ -28,45 +28,52 @@ void handle_collisions(context *ctx);
 void render_frame(context *ctx);
 
 extern "C" {
+    bool gameStarted = false;
+
+    EMSCRIPTEN_KEEPALIVE
+    void startGame(context *ctx) {
+        cout << "Called startgame" << endl;
+        gameStarted = true;
+        EM_ASM(Module.startgame = false;);
+    }
+    /*Cannot this way due to asynchronous nature of doing main_loop not registering this change in ctx->gameState
+    EMSCRIPTEN_KEEPALIVE
+    void startGame(context *ctx) {
+        cout << "Called startgame" << endl;
+        if (ctx->gameState != context::GameState::GAMEPLAY)
+            ctx->gameState = context::GameState::GAMEPLAY;
+        EM_ASM(Module.startgame = false;);
+        cout << "Game state is " << (ctx->gameState) << endl;
+    }*/
+
     EMSCRIPTEN_KEEPALIVE
     void handleInput(int key, int state, context *ctx) {
         
-        /*if (Helper::is_game_over(ctx)) {
-            char keyPressed = static_cast<char>(key);
-
-            EM_ASM_({
-                var inputElement = document.getElementById("username-input");
-                if (inputElement) {
-                    inputElement.value += String.fromCharCode($0);
-                }
-            }, keyPressed);
-        } else {*/
-            switch (key) {
-                case ' ':
-                    init_projectiles(ctx);
-                    break;
-                case 38: // Up arrow code
-                case 'W':
-                case 'w':
-                    ctx->cube_position.y = max(ctx->cube_position.y - 10, ctx->cube_size / 2);
-                    break;
-                case 40: // Down arrow code
-                case 'S':
-                case 's':
-                    ctx->cube_position.y = min(ctx->cube_position.y + 10, ctx->WINDOW_HEIGHT - ctx->cube_size / 2);
-                    break;
-                case 37: // Left arrow code
-                case 'A':
-                case 'a':
-                    ctx->cube_position.x = max(ctx->cube_position.x - 10, ctx->cube_size / 2);
-                    break;
-                case 39: // Right arrow code
-                case 'D':
-                case 'd':
-                    ctx->cube_position.x = min(ctx->cube_position.x + 10, ctx->WINDOW_WIDTH - ctx->cube_size / 2);
-                    break;
-            }
-        //}
+        switch (key) {
+            case ' ':
+                init_projectiles(ctx);
+                break;
+            case 38: // Up arrow code
+            case 'W':
+            case 'w':
+                ctx->cube_position.y = max(ctx->cube_position.y - 10, ctx->cube_size / 2);
+                break;
+            case 40: // Down arrow code
+            case 'S':
+            case 's':
+                ctx->cube_position.y = min(ctx->cube_position.y + 10, ctx->WINDOW_HEIGHT - ctx->cube_size / 2);
+                break;
+            case 37: // Left arrow code
+            case 'A':
+            case 'a':
+                ctx->cube_position.x = max(ctx->cube_position.x - 10, ctx->cube_size / 2);
+                break;
+            case 39: // Right arrow code
+            case 'D':
+            case 'd':
+                ctx->cube_position.x = min(ctx->cube_position.x + 10, ctx->WINDOW_WIDTH - ctx->cube_size / 2);
+                break;
+        }
     }
 }
 
@@ -167,8 +174,27 @@ void main_loop(void *arg) {
     SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 255, 255);
     SDL_RenderClear(ctx->renderer);
 
-    render_frame(ctx);
-    handle_collisions(ctx);
+    EM_ASM(
+        if (Module.startgame) {
+            Module.ccall("startGame", 'void', ['number'], [$0]);
+        }
+    , &ctx);
+
+    if (gameStarted) {
+        ctx->gameState = context::GameState::GAMEPLAY;
+        gameStarted = false; // Reset the flag
+    }
+
+    cout << "Mainloop " << (ctx->gameState) << endl;
+
+    if (ctx->gameState == context::GameState::START) {
+        // Render the start screen and listen for interactions
+        // ...
+        // If user interacts, change gameState to GameState::GAMEPLAY
+    } else if (ctx->gameState == context::GameState::GAMEPLAY) {
+        render_frame(ctx);
+        handle_collisions(ctx);
+    }
 
     SDL_RenderPresent(ctx->renderer);
 
@@ -179,15 +205,6 @@ void main_loop(void *arg) {
         ctx->gameDataStored = !ctx->gameDataStored;
         EM_ASM_({
             Module.playerScore = $0;
-            /*fetch('/save_score', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                score: $0 
-                }),
-            });*/
         }, ctx->score);
     }
 
@@ -239,23 +256,14 @@ int main(int argc, char *argv[]) {
             if (event.type === "keydown") {
                 Module.ccall('handleInput', 'void', ['int', 'int', 'number'], [event.keyCode, 1, $0]);
             }
+            /*else if (event.type === "mousedown" && Module.startgame) {
+                Module.ccall("startGame", 'void', ['number'], [$0]);
+            }*/
         };
 
         document.addEventListener('keydown', Module.handleEvent);
+        //document.addEventListener('mousedown', Module.handleEvent);
     , &ctx);
-    /*EM_ASM(
-        document.addEventListener('keydown', function(event) {
-            if (!$0) {
-                Module.ccall('handleInput', 'void', ['int', 'int', 'number'], [event.keyCode, 1, $1]);
-            }
-        });
-
-        var inputField = document.getElementById("username-input");
-        inputField.addEventListener('keydown', function(event) {
-            // Allow the input field to handle keydown events without game over check
-            event.stopPropagation();
-        }
-    ), Helper::is_game_over(&ctx), &ctx);*/
 
     emscripten_set_main_loop_arg(main_loop, &ctx, -1, 1);
 

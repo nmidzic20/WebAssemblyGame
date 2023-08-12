@@ -29,6 +29,13 @@ struct context {
         Point position;
     };
 
+    enum GameState {
+        START,
+        GAMEPLAY
+    };
+
+    GameState gameState;
+
     SDL_Window *window;
     SDL_Renderer *renderer;
 
@@ -53,7 +60,7 @@ struct context {
 
     bool gameDataStored;
 
-    context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 }, gameDataStored(false) {}
+    context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 }, gameDataStored(false), gameState(GameState::START) {}
 
     ~context() {
         for (Collidable* collidable : collidables) {
