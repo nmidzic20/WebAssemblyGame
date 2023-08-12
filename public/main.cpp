@@ -231,6 +231,10 @@ int main(int argc, char *argv[]) {
     ctx.window = SDL_CreateWindow("Endless Runner", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT, 0);
     ctx.renderer = SDL_CreateRenderer(ctx.window, -1, SDL_RENDERER_ACCELERATED);
 
+    EM_ASM({
+        Module.onGameLoaded($0, $1);
+    }, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT);
+
     try {
         ctx.background_image = load_image("./assets/image.png", &ctx);
     }

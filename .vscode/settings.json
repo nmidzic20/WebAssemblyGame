@@ -4,6 +4,7 @@
     "xstring": "cpp",
     "initializer_list": "cpp",
     "vector": "cpp",
-    "xutility": "cpp"
+    "xutility": "cpp",
+    "cmath": "cpp"
   }
 }
