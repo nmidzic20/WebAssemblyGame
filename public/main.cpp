@@ -30,31 +30,43 @@ void render_frame(context *ctx);
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     void handleInput(int key, int state, context *ctx) {
-        switch (key) {
-            case ' ':
-                init_projectiles(ctx);
-                break;
-            case 38: // Up arrow code
-            case 'W':
-            case 'w':
-                ctx->cube_position.y = max(ctx->cube_position.y - 10, ctx->cube_size / 2);
-                break;
-            case 40: // Down arrow code
-            case 'S':
-            case 's':
-                ctx->cube_position.y = min(ctx->cube_position.y + 10, ctx->WINDOW_HEIGHT - ctx->cube_size / 2);
-                break;
-            case 37: // Left arrow code
-            case 'A':
-            case 'a':
-                ctx->cube_position.x = max(ctx->cube_position.x - 10, ctx->cube_size / 2);
-                break;
-            case 39: // Right arrow code
-            case 'D':
-            case 'd':
-                ctx->cube_position.x = min(ctx->cube_position.x + 10, ctx->WINDOW_WIDTH - ctx->cube_size / 2);
-                break;
-        }
+        
+        /*if (Helper::is_game_over(ctx)) {
+            char keyPressed = static_cast<char>(key);
+
+            EM_ASM_({
+                var inputElement = document.getElementById("username-input");
+                if (inputElement) {
+                    inputElement.value += String.fromCharCode($0);
+                }
+            }, keyPressed);
+        } else {*/
+            switch (key) {
+                case ' ':
+                    init_projectiles(ctx);
+                    break;
+                case 38: // Up arrow code
+                case 'W':
+                case 'w':
+                    ctx->cube_position.y = max(ctx->cube_position.y - 10, ctx->cube_size / 2);
+                    break;
+                case 40: // Down arrow code
+                case 'S':
+                case 's':
+                    ctx->cube_position.y = min(ctx->cube_position.y + 10, ctx->WINDOW_HEIGHT - ctx->cube_size / 2);
+                    break;
+                case 37: // Left arrow code
+                case 'A':
+                case 'a':
+                    ctx->cube_position.x = max(ctx->cube_position.x - 10, ctx->cube_size / 2);
+                    break;
+                case 39: // Right arrow code
+                case 'D':
+                case 'd':
+                    ctx->cube_position.x = min(ctx->cube_position.x + 10, ctx->WINDOW_WIDTH - ctx->cube_size / 2);
+                    break;
+            }
+        //}
     }
 }
 
@@ -166,15 +178,33 @@ void main_loop(void *arg) {
     if (Helper::is_game_over(ctx) && !ctx->gameDataStored) {
         ctx->gameDataStored = !ctx->gameDataStored;
         EM_ASM_({
-            fetch('/save_score', {
+            Module.playerScore = $0;
+            /*fetch('/save_score', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ score: $0 }),
-            });
+            body: JSON.stringify({ 
+                score: $0 
+                }),
+            });*/
         }, ctx->score);
     }
+
+    if (Helper::is_game_over(ctx))
+        EM_ASM(
+            var usernameContainer = document.getElementById("username-container");
+            if (usernameContainer.style.display != "block") {
+                usernameContainer.style.display = "block";
+            }
+        );
+    else
+        EM_ASM(
+            var usernameContainer = document.getElementById("username-container");
+            if (usernameContainer.style.display != "none") {
+                usernameContainer.style.display = "none";
+            }
+        );
 }
 
 int main(int argc, char *argv[]) {
@@ -213,6 +243,19 @@ int main(int argc, char *argv[]) {
 
         document.addEventListener('keydown', Module.handleEvent);
     , &ctx);
+    /*EM_ASM(
+        document.addEventListener('keydown', function(event) {
+            if (!$0) {
+                Module.ccall('handleInput', 'void', ['int', 'int', 'number'], [event.keyCode, 1, $1]);
+            }
+        });
+
+        var inputField = document.getElementById("username-input");
+        inputField.addEventListener('keydown', function(event) {
+            // Allow the input field to handle keydown events without game over check
+            event.stopPropagation();
+        }
+    ), Helper::is_game_over(&ctx), &ctx);*/
 
     emscripten_set_main_loop_arg(main_loop, &ctx, -1, 1);
 

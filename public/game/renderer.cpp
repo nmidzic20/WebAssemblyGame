@@ -110,6 +110,7 @@ void Renderer::draw_game_over(context *ctx) {
             ctx->scroll_speed = 1.0f;
             ctx->gameDataStored = false;
     }
+
 }
 
 void Renderer::draw_text(const context *ctx, context::Text text) {

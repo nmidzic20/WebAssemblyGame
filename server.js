@@ -12,8 +12,9 @@ app.use(express.json());
 const db = new sqlite3.Database("game_data.db");
 
 db.run(`
-  CREATE TABLE IF NOT EXISTS scores (
+  CREATE TABLE IF NOT EXISTS players (
     id INTEGER PRIMARY KEY,
+    username TEXT,
     score INTEGER
   )
 `);
@@ -37,18 +38,22 @@ app.get("/leaderboard", async (req, res) => {
   res.send(leaderboardHtml);
 });
 
-app.post("/save_score", (req, res) => {
-  const { score } = req.body;
+app.post("/save_player", (req, res) => {
+  const { username, score } = req.body;
 
-  db.run("INSERT INTO scores (score) VALUES (?)", [score], function (err) {
-    if (err) {
-      console.error("Error saving score:", err);
-      res.status(500).json({ message: "Error saving score" });
-    } else {
-      console.log("Score saved successfully");
-      res.json({ message: "Score saved successfully" });
+  db.run(
+    "INSERT INTO players (username, score) VALUES (?, ?)",
+    [username, score],
+    function (err) {
+      if (err) {
+        console.error("Error saving player:", err);
+        res.status(500).json({ message: "Error saving player" });
+      } else {
+        console.log("Player saved successfully");
+        res.json({ message: "Player saved successfully" });
+      }
     }
-  });
+  );
 });
 
 app.listen(port, () => {
@@ -68,7 +73,7 @@ function loadHTML(path) {
 
 async function getScoresFromDatabase() {
   return new Promise((resolve, reject) => {
-    db.all("SELECT * FROM scores", (err, rows) => {
+    db.all("SELECT * FROM players", (err, rows) => {
       if (err) {
         reject(err);
       } else {
@@ -79,10 +84,10 @@ async function getScoresFromDatabase() {
 }
 
 function generateScoresTable(scores) {
-  let tableHtml = "<table><tr><th>ID</th><th>Score</th></tr>";
+  let tableHtml = "<table><tr><th>ID</th><th>Username</th><th>Score</th></tr>";
 
   for (const score of scores) {
-    tableHtml += `<tr><td>${score.id}</td><td>${score.score}</td></tr>`;
+    tableHtml += `<tr><td>${score.id}</td><td>${score.username}</td><td>${score.score}</td></tr>`;
   }
 
   tableHtml += "</table>";
