@@ -81,26 +81,26 @@ void Renderer::draw_score(const context *ctx) {
 void Renderer::draw_game_over(context *ctx) {
     string game_over = "Game over!";
     string score_achieved = "Score achieved: " + to_string(ctx->score);
-    string restart = "Restart";
+    //string restart = "Restart";
 
     SDL_Color text_color = {165, 0, 255, 255};
     int textWidth, textHeight;
 
     TTF_SizeText(ctx->font, game_over.c_str(), &textWidth, &textHeight);
-    context::Text text = { game_over, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT - 2.5f * textHeight) / 2 } };
+    context::Text text = { game_over, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT - 5.5f * textHeight) / 2 } };
     Renderer::draw_text(ctx, text);
 
     TTF_SizeText(ctx->font, score_achieved.c_str(), &textWidth, &textHeight);
-    text = { score_achieved, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT - textHeight) / 2 } };
+    text = { score_achieved, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT - 4.0f * textHeight) / 2 } };
     Renderer::draw_text(ctx, text);
 
-    TTF_SizeText(ctx->font, restart.c_str(), &textWidth, &textHeight);
-    SDL_Rect restartRect = { static_cast<int>((ctx->WINDOW_WIDTH - textWidth) / 2), static_cast<int>((ctx->WINDOW_HEIGHT + 1.5f * textHeight) / 2), textWidth, textHeight };
-    text = { restart, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT + 1.5f * textHeight) / 2 } };
-    Renderer::draw_text(ctx, text);
+    /*TTF_SizeText(ctx->font, restart.c_str(), &textWidth, &textHeight);
+    SDL_Rect restartRect = { static_cast<int>((ctx->WINDOW_WIDTH - textWidth) / 2), static_cast<int>((ctx->WINDOW_HEIGHT + 2.5f * textHeight) / 2), textWidth, textHeight };
+    text = { restart, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT + 2.5f * textHeight) / 2 } };
+    Renderer::draw_text(ctx, text);*/
 
     // Restart game when hovering over Restart text
-    int mouseX, mouseY;
+    /*int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
 
     if (mouseX >= restartRect.x && mouseX <= restartRect.x + textWidth &&
@@ -109,7 +109,7 @@ void Renderer::draw_game_over(context *ctx) {
             ctx->score = 0;
             ctx->scroll_speed = 1.0f;
             ctx->gameDataStored = false;
-    }
+    }*/
 
 }
 

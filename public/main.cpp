@@ -31,10 +31,12 @@ extern "C" {
     bool gameStarted = false;
 
     EMSCRIPTEN_KEEPALIVE
-    void startGame(context *ctx) {
+    void start_game(context *ctx) {
         cout << "Called startgame" << endl;
         gameStarted = true;
-        EM_ASM(Module.startgame = false;);
+        EM_ASM(
+            Module.startGame = false;
+        );
     }
     /*Cannot this way due to asynchronous nature of doing main_loop not registering this change in ctx->gameState
     EMSCRIPTEN_KEEPALIVE
@@ -42,12 +44,26 @@ extern "C" {
         cout << "Called startgame" << endl;
         if (ctx->gameState != context::GameState::GAMEPLAY)
             ctx->gameState = context::GameState::GAMEPLAY;
-        EM_ASM(Module.startgame = false;);
+        EM_ASM(Module.startGame = false;);
         cout << "Game state is " << (ctx->gameState) << endl;
     }*/
 
     EMSCRIPTEN_KEEPALIVE
-    void handleInput(int key, int state, context *ctx) {
+    void restart_game(context *ctx) {
+        ctx->lives = 10;
+        ctx->score = 0;
+        ctx->scroll_speed = 1.0f;
+        ctx->score_sent = false;
+
+        EM_ASM(
+            Module.gameDataStored = false;
+            document.getElementById("username-input").style.display = "block";
+            document.getElementById("submit-button").style.display = "block";
+        );
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    void handle_input(int key, int state, context *ctx) {
         
         switch (key) {
             case ' ':
@@ -171,12 +187,12 @@ void render_frame(context *ctx) {
 void main_loop(void *arg) {
     context *ctx = static_cast<context*>(arg);
 
-    SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 255, 255);
+    SDL_SetRenderDrawColor(ctx->renderer, 160, 0, 200, 255);
     SDL_RenderClear(ctx->renderer);
 
     EM_ASM(
-        if (Module.startgame) {
-            Module.ccall("startGame", 'void', ['number'], [$0]);
+        if (Module.startGame) {
+            Module.ccall("start_game", 'void', ['number'], [$0]);
         }
     , &ctx);
 
@@ -201,8 +217,8 @@ void main_loop(void *arg) {
     update_background_offset(ctx);
     update_collidables(ctx);
 
-    if (Helper::is_game_over(ctx) && !ctx->gameDataStored) {
-        ctx->gameDataStored = !ctx->gameDataStored;
+    if (Helper::is_game_over(ctx) && !ctx->score_sent) {
+        ctx->score_sent = !ctx->score_sent;
         EM_ASM_({
             Module.playerScore = $0;
         }, ctx->score);
@@ -211,8 +227,8 @@ void main_loop(void *arg) {
     if (Helper::is_game_over(ctx))
         EM_ASM(
             var usernameContainer = document.getElementById("username-container");
-            if (usernameContainer.style.display != "block") {
-                usernameContainer.style.display = "block";
+            if (usernameContainer.style.display != "flex" && Module.gameDataStored === false) {
+                usernameContainer.style.display = "flex";
             }
         );
     else
@@ -257,16 +273,18 @@ int main(int argc, char *argv[]) {
 
     EM_ASM(
         Module.handleEvent = function(event) {
-            if (event.type === "keydown") {
-                Module.ccall('handleInput', 'void', ['int', 'int', 'number'], [event.keyCode, 1, $0]);
-            }
-            /*else if (event.type === "mousedown" && Module.startgame) {
-                Module.ccall("startGame", 'void', ['number'], [$0]);
+            //if (event.type === "keydown") {
+                Module.ccall('handle_input', 'void', ['int', 'int', 'number'], [event.keyCode, 1, $0]);
+            //}
+            /*else if (event.type === "mousedown" && Module.startGame) {
+                Module.ccall("start_game", 'void', ['number'], [$0]);
             }*/
         };
 
         document.addEventListener('keydown', Module.handleEvent);
         //document.addEventListener('mousedown', Module.handleEvent);
+
+        Module.context = $0;
     , &ctx);
 
     emscripten_set_main_loop_arg(main_loop, &ctx, -1, 1);

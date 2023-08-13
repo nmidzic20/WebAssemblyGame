@@ -10,12 +10,10 @@
       }
 
       #username-container {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
         display: none;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
       }
 
       #start-container {
@@ -23,11 +21,10 @@
         justify-content: center;
         align-items: center;
         position: absolute;
-        /*width: 100%;
-        height: 100%;*/
       }
 
       #start-button {
+        display: none;
         padding: 10px 20px;
         font-size: 18px;
         background-color: #007bff;
@@ -51,7 +48,6 @@
       <div id="start-container">
         <button id="start-button">START</button>
       </div>
-      <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
       <div id="username-container">
         <input
           type="text"
@@ -59,7 +55,11 @@
           placeholder="Enter your username"
         />
         <button id="submit-button">Submit</button>
+        <div id="restart-container">
+          <button id="restart-button">Restart</button>
+        </div>
       </div>
+      <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
     </main>
     <footer></footer>
     <script type="text/javascript">
@@ -68,6 +68,7 @@
       var usernameInput = document.getElementById("username-input");
       var submitButton = document.getElementById("submit-button");
       var startButton = document.getElementById("start-button");
+      var restartButton = document.getElementById("restart-button");
 
       submitButton.addEventListener("click", function () {
         var username = usernameInput.value;
@@ -86,6 +87,10 @@
           .then((response) => response.json())
           .then((data) => {
             console.log(data.message);
+            usernameInput.value = "";
+            Module.gameDataStored = true;
+            usernameInput.style.display = "none";
+            submitButton.style.display = "none";
           })
           .catch((error) => {
             console.error("Error:", error);
@@ -99,8 +104,13 @@
       });
 
       startButton.addEventListener("click", function () {
-        Module.startgame = true;
+        Module.startGame = true;
         document.getElementById("start-container").style.display = "none";
+      });
+
+      restartButton.addEventListener("click", function () {
+        Module.ccall("restart_game", "void", ["number"], [Module.context]);
+        document.getElementById("username-container").style.display = "none";
       });
 
       if (!Module.canvas) {
@@ -119,12 +129,16 @@
         document.head.appendChild(script);
       }
 
+      Module.gameDataStored = false;
+
       Module.onGameLoaded = function (width, height) {
-        var startContainer = document.getElementById("start-container");
-        if (startContainer) {
-          startContainer.style.width = width + "px";
-          startContainer.style.height = height + "px";
-        }
+        let startContainer = document.getElementById("start-container");
+        let usernameContainer = document.getElementById("username-container");
+        startContainer.style.width = width + "px";
+        startContainer.style.height = height + "px";
+        usernameContainer.style.width = width + "px";
+        usernameContainer.style.height = height + "px";
+        startButton.style.display = "block";
       };
     </script>
   </body>

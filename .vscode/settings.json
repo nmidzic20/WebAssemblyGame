@@ -5,6 +5,8 @@
     "initializer_list": "cpp",
     "vector": "cpp",
     "xutility": "cpp",
-    "cmath": "cpp"
+    "cmath": "cpp",
+    "iosfwd": "cpp",
+    "xlocbuf": "cpp"
   }
 }
