@@ -34,13 +34,18 @@ struct context {
         GAMEPLAY
     };
 
-    GameState gameState;
+    enum Avatar {
+        CUBE,
+        TRIANGLE
+    };
+
+    GameState game_state;
 
     SDL_Window *window;
     SDL_Renderer *renderer;
 
-    float cube_size = 50.0f;
-    Point cube_position;
+    float player_size = 50.0f;
+    Point player_position;
     bool prevCollision = false;
 
     float lastProjectileFiredTime = 0.0f;
@@ -60,7 +65,9 @@ struct context {
 
     bool score_sent;
 
-    context() : cube_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 }, score_sent(false), gameState(GameState::START) {}
+    int avatar_selected;
+
+    context() : player_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 }, score_sent(false), game_state(GameState::START) {}
 
     ~context() {
         for (Collidable* collidable : collidables) {

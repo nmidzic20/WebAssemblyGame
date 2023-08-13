@@ -33,9 +33,9 @@ void Collidable::draw(const context *ctx) {
 
 void Collidable::handle_collision(context *ctx) {
     SDL_Rect cubeRect = {
-        static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2),
-        static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2),
-        static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
+        static_cast<int>(ctx->player_position.x - ctx->player_size / 2),
+        static_cast<int>(ctx->player_position.y - ctx->player_size / 2),
+        static_cast<int>(ctx->player_size), static_cast<int>(ctx->player_size)};
 
     if (!collided) {
         SDL_Rect collidableRect = {

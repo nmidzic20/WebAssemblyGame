@@ -35,17 +35,19 @@ extern "C" {
         cout << "Called startgame" << endl;
         gameStarted = true;
         EM_ASM(
-            Module.startGame = false;
-        );
+            //let avatar_index = (Module.avatarSelected) ? Module.avatarSelected : 0;
+            //Module.ccall("set_avatar", 'void', ['number', 'number'], [$0, avatar_index]);
+            //Module.startGame = false;
+        , ctx);
     }
-    /*Cannot this way due to asynchronous nature of doing main_loop not registering this change in ctx->gameState
+    /*Cannot this way due to asynchronous nature of doing main_loop not registering this change in ctx->game_state
     EMSCRIPTEN_KEEPALIVE
     void startGame(context *ctx) {
         cout << "Called startgame" << endl;
-        if (ctx->gameState != context::GameState::GAMEPLAY)
-            ctx->gameState = context::GameState::GAMEPLAY;
+        if (ctx->game_state != context::GameState::GAMEPLAY)
+            ctx->game_state = context::GameState::GAMEPLAY;
         EM_ASM(Module.startGame = false;);
-        cout << "Game state is " << (ctx->gameState) << endl;
+        cout << "Game state is " << (ctx->game_state) << endl;
     }*/
 
     EMSCRIPTEN_KEEPALIVE
@@ -63,6 +65,12 @@ extern "C" {
     }
 
     EMSCRIPTEN_KEEPALIVE
+    void set_avatar(context *ctx, int avatar_index) {
+        ctx->avatar_selected = avatar_index;
+        cout << "Avatar " << ctx->avatar_selected << endl;
+    }
+
+    EMSCRIPTEN_KEEPALIVE
     void handle_input(int key, int state, context *ctx) {
         
         switch (key) {
@@ -72,22 +80,22 @@ extern "C" {
             case 38: // Up arrow code
             case 'W':
             case 'w':
-                ctx->cube_position.y = max(ctx->cube_position.y - 10, ctx->cube_size / 2);
+                ctx->player_position.y = max(ctx->player_position.y - 10, ctx->player_size / 2);
                 break;
             case 40: // Down arrow code
             case 'S':
             case 's':
-                ctx->cube_position.y = min(ctx->cube_position.y + 10, ctx->WINDOW_HEIGHT - ctx->cube_size / 2);
+                ctx->player_position.y = min(ctx->player_position.y + 10, ctx->WINDOW_HEIGHT - ctx->player_size / 2);
                 break;
             case 37: // Left arrow code
             case 'A':
             case 'a':
-                ctx->cube_position.x = max(ctx->cube_position.x - 10, ctx->cube_size / 2);
+                ctx->player_position.x = max(ctx->player_position.x - 10, ctx->player_size / 2);
                 break;
             case 39: // Right arrow code
             case 'D':
             case 'd':
-                ctx->cube_position.x = min(ctx->cube_position.x + 10, ctx->WINDOW_WIDTH - ctx->cube_size / 2);
+                ctx->player_position.x = min(ctx->player_position.x + 10, ctx->WINDOW_WIDTH - ctx->player_size / 2);
                 break;
         }
     }
@@ -130,13 +138,12 @@ void init_projectiles(context *ctx) {
     float currentTime = SDL_GetTicks() / 1000.0f;
     if (currentTime - ctx->lastProjectileFiredTime >= ctx->PROJECTILE_COOLDOWN_TIME) {
         Projectile *projectile = new Projectile(
-            ctx->cube_position.x,
-            ctx->cube_position.y,
+            ctx->player_position.x,
+            ctx->player_position.y,
             20.0f,
             5.0f,
             false,
             5.0f
-            //projectile->active = true;
         );
         ctx->collidables.push_back(projectile);
 
@@ -174,7 +181,7 @@ void handle_collisions(context *ctx) {
 void render_frame(context *ctx) {
 
     Renderer::draw_background(ctx);
-    Renderer::draw_cube(ctx);
+    Renderer::draw_player(ctx);
     Renderer::draw_collidables(ctx);
 
     if (Helper::is_game_over(ctx)) {
@@ -190,24 +197,18 @@ void main_loop(void *arg) {
     SDL_SetRenderDrawColor(ctx->renderer, 160, 0, 200, 255);
     SDL_RenderClear(ctx->renderer);
 
-    EM_ASM(
+    /*EM_ASM(
         if (Module.startGame) {
             Module.ccall("start_game", 'void', ['number'], [$0]);
         }
-    , &ctx);
+    , &ctx);*/
 
     if (gameStarted) {
-        ctx->gameState = context::GameState::GAMEPLAY;
-        gameStarted = false; // Reset the flag
+        ctx->game_state = context::GameState::GAMEPLAY;
+        gameStarted = false;
     }
 
-    cout << "Mainloop " << (ctx->gameState) << endl;
-
-    if (ctx->gameState == context::GameState::START) {
-        // Render the start screen and listen for interactions
-        // ...
-        // If user interacts, change gameState to GameState::GAMEPLAY
-    } else if (ctx->gameState == context::GameState::GAMEPLAY) {
+    if (ctx->game_state == context::GameState::GAMEPLAY) {
         render_frame(ctx);
         handle_collisions(ctx);
     }
@@ -273,16 +274,10 @@ int main(int argc, char *argv[]) {
 
     EM_ASM(
         Module.handleEvent = function(event) {
-            //if (event.type === "keydown") {
-                Module.ccall('handle_input', 'void', ['int', 'int', 'number'], [event.keyCode, 1, $0]);
-            //}
-            /*else if (event.type === "mousedown" && Module.startGame) {
-                Module.ccall("start_game", 'void', ['number'], [$0]);
-            }*/
+            Module.ccall('handle_input', 'void', ['int', 'int', 'number'], [event.keyCode, 1, $0]);
         };
 
         document.addEventListener('keydown', Module.handleEvent);
-        //document.addEventListener('mousedown', Module.handleEvent);
 
         Module.context = $0;
     , &ctx);

@@ -77,8 +77,20 @@ function setupShapes(container) {
     if (intersects.length > 0) {
       if (intersects[0].object === cube) {
         console.log("Cube was clicked");
+        Module.ccall(
+          "set_avatar",
+          "void",
+          ["number", "number"],
+          [Module.context, 0]
+        );
       } else if (intersects[0].object === cone) {
         console.log("Cone was clicked");
+        Module.ccall(
+          "set_avatar",
+          "void",
+          ["number", "number"],
+          [Module.context, 1]
+        );
       }
     }
   };

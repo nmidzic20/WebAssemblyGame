@@ -40,7 +40,8 @@ usernameInput.addEventListener("keydown", function (event) {
 });
 
 startButton.addEventListener("click", function () {
-  Module.startGame = true;
+  //Module.startGame = true;
+  Module.ccall("start_game", "void", ["number"], [Module.context]);
   document.getElementById("start-container").style.display = "none";
 });
 

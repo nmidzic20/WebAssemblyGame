@@ -30,17 +30,26 @@ void Renderer::draw_background(context *ctx) {
     SDL_RenderCopy(ctx->renderer, ctx->images[ctx->background_image], nullptr, &dest_rect);
 }
 
-void Renderer::draw_cube(const context *ctx) {
+void Renderer::draw_player(const context *ctx) {
 
     if (Helper::is_game_over(ctx)) return;
 
     SDL_Rect rect;
-    rect.w = ctx->cube_size;
-    rect.h = ctx->cube_size;
-    rect.x = ctx->cube_position.x - ctx->cube_size / 2;
-    rect.y = ctx->cube_position.y - ctx->cube_size / 2;
+    rect.w = ctx->player_size;
+    rect.h = ctx->player_size;
+    rect.x = ctx->player_position.x - ctx->player_size / 2;
+    rect.y = ctx->player_position.y - ctx->player_size / 2;
 
-    SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 255, 255); 
+    SDL_Color color = { 255, 255, 255, 255 };
+
+    if (ctx->avatar_selected == context::Avatar::CUBE) {
+        color = { 255, 0, 0, 255 };
+    }
+    else if (ctx->avatar_selected == context::Avatar::TRIANGLE) {
+        color = { 0, 255, 0, 255 };
+    }
+    
+    SDL_SetRenderDrawColor(ctx->renderer, color.r, color.g, color.b, color.a); 
     SDL_RenderFillRect(ctx->renderer, &rect);
 }
 
@@ -52,25 +61,6 @@ void Renderer::draw_collidables(context *ctx) {
 }
 
 void Renderer::draw_score(const context *ctx) {
-    /*string score_text = "Score: " + to_string(ctx->score);
-    string lives_text = "Lives: " + to_string(ctx->lives);
-
-    const char *s_text = score_text.c_str();
-    SDL_Surface *s_surface = TTF_RenderText_Solid(ctx->font, s_text, {255, 165, 0, 255});
-    SDL_Texture *s_texture = SDL_CreateTextureFromSurface(ctx->renderer, s_surface);
-    SDL_Rect s_destRect = {10, 10, s_surface->w, s_surface->h};
-    SDL_FreeSurface(s_surface);
-    SDL_RenderCopy(ctx->renderer, s_texture, NULL, &s_destRect);
-    SDL_DestroyTexture(s_texture);
-
-    const char *l_text = lives_text.c_str();
-    SDL_Surface *l_surface = TTF_RenderText_Solid(ctx->font, l_text, {255, 165, 0, 255});
-    SDL_Texture *l_texture = SDL_CreateTextureFromSurface(ctx->renderer, l_surface);
-    SDL_Rect l_destRect = {10, 50, l_surface->w, l_surface->h};
-    SDL_FreeSurface(l_surface);
-    SDL_RenderCopy(ctx->renderer, l_texture, NULL, &l_destRect);
-    SDL_DestroyTexture(l_texture);
-    */
     context::Text score_text = { "Score: " + to_string(ctx->score), {255, 165, 0, 255}, { 10, 10 } };
     context::Text lives_text = { "Lives: " + to_string(ctx->lives), {255, 165, 0, 255}, { 10, 50 } };
 
@@ -81,7 +71,6 @@ void Renderer::draw_score(const context *ctx) {
 void Renderer::draw_game_over(context *ctx) {
     string game_over = "Game over!";
     string score_achieved = "Score achieved: " + to_string(ctx->score);
-    //string restart = "Restart";
 
     SDL_Color text_color = {165, 0, 255, 255};
     int textWidth, textHeight;
@@ -93,24 +82,6 @@ void Renderer::draw_game_over(context *ctx) {
     TTF_SizeText(ctx->font, score_achieved.c_str(), &textWidth, &textHeight);
     text = { score_achieved, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT - 4.0f * textHeight) / 2 } };
     Renderer::draw_text(ctx, text);
-
-    /*TTF_SizeText(ctx->font, restart.c_str(), &textWidth, &textHeight);
-    SDL_Rect restartRect = { static_cast<int>((ctx->WINDOW_WIDTH - textWidth) / 2), static_cast<int>((ctx->WINDOW_HEIGHT + 2.5f * textHeight) / 2), textWidth, textHeight };
-    text = { restart, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT + 2.5f * textHeight) / 2 } };
-    Renderer::draw_text(ctx, text);*/
-
-    // Restart game when hovering over Restart text
-    /*int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
-
-    if (mouseX >= restartRect.x && mouseX <= restartRect.x + textWidth &&
-        mouseY >= restartRect.y && mouseY <= restartRect.y + textHeight) {
-            ctx->lives = 10;
-            ctx->score = 0;
-            ctx->scroll_speed = 1.0f;
-            ctx->gameDataStored = false;
-    }*/
-
 }
 
 void Renderer::draw_text(const context *ctx, context::Text text) {

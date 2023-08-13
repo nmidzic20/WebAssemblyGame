@@ -16,7 +16,7 @@ bool Helper::is_outside_window_bounds(Collidable *collidable) {
 }
 
 void Helper::reset_collided_flag(const context *ctx) {
-    SDL_Rect cubeRect = {static_cast<int>(ctx->cube_position.x - ctx->cube_size / 2), static_cast<int>(ctx->cube_position.y - ctx->cube_size / 2), static_cast<int>(ctx->cube_size), static_cast<int>(ctx->cube_size)};
+    SDL_Rect cubeRect = {static_cast<int>(ctx->player_position.x - ctx->player_size / 2), static_cast<int>(ctx->player_position.y - ctx->player_size / 2), static_cast<int>(ctx->player_size), static_cast<int>(ctx->player_size)};
 
     // Reset the collided flag for the collidable if the cube is not colliding with it anymore
     if (!ctx->prevCollision) {

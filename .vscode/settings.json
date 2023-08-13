@@ -7,6 +7,10 @@
     "xutility": "cpp",
     "cmath": "cpp",
     "iosfwd": "cpp",
-    "xlocbuf": "cpp"
+    "xlocbuf": "cpp",
+    "deque": "cpp",
+    "format": "cpp",
+    "list": "cpp",
+    "ostream": "cpp"
   }
 }
