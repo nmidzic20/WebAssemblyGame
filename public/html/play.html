@@ -59,6 +59,8 @@
           <button id="restart-button">Restart</button>
         </div>
       </div>
+      <div id="shape-container"></div>
+
       <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
     </main>
     <footer></footer>
@@ -140,6 +142,51 @@
         usernameContainer.style.height = height + "px";
         startButton.style.display = "block";
       };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.min.js"></script>
+    <script type="module">
+      function setupShapes(container) {
+        // Create a scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color("#0d0c18");
+        // Create a cube
+        const geometry = new THREE.BoxGeometry(10, 10, 10);
+        geometry.center();
+        const material = new THREE.MeshNormalMaterial({
+          side: THREE.DoubleSide,
+        });
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+        // Create a camera
+        const camera = new THREE.PerspectiveCamera();
+        camera.position.set(10, 10, 60);
+        camera.lookAt(0, 0, 0);
+        // Rendering
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        container.appendChild(renderer.domElement);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        // Create an animation loop
+        const render = () => {
+          requestAnimationFrame(render);
+
+          // Rotate the cube
+          cube.rotation.y += 0.01;
+
+          renderer.render(scene, camera);
+        };
+
+        render();
+      }
+
+      // Call the setupShapes function when the page is loaded
+      window.addEventListener("load", () => {
+        const shapeContainer = document.getElementById("shape-container");
+        if (shapeContainer) {
+          setupShapes(shapeContainer);
+        }
+      });
     </script>
   </body>
 </html>
