@@ -1,4 +1,5 @@
-var Module = {};
+Module = {};
+playing = false;
 
 let usernameInput = document.getElementById("username-input");
 let submitButton = document.getElementById("submit-button");
@@ -40,9 +41,9 @@ usernameInput.addEventListener("keydown", function (event) {
 });
 
 startButton.addEventListener("click", function () {
-  //Module.startGame = true;
   Module.ccall("start_game", "void", ["number"], [Module.context]);
   document.getElementById("start-container").style.display = "none";
+  playing = true;
 });
 
 restartButton.addEventListener("click", function () {

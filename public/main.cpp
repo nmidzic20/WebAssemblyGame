@@ -34,11 +34,6 @@ extern "C" {
     void start_game(context *ctx) {
         cout << "Called startgame" << endl;
         gameStarted = true;
-        EM_ASM(
-            //let avatar_index = (Module.avatarSelected) ? Module.avatarSelected : 0;
-            //Module.ccall("set_avatar", 'void', ['number', 'number'], [$0, avatar_index]);
-            //Module.startGame = false;
-        , ctx);
     }
     /*Cannot this way due to asynchronous nature of doing main_loop not registering this change in ctx->game_state
     EMSCRIPTEN_KEEPALIVE
@@ -196,12 +191,6 @@ void main_loop(void *arg) {
 
     SDL_SetRenderDrawColor(ctx->renderer, 160, 0, 200, 255);
     SDL_RenderClear(ctx->renderer);
-
-    /*EM_ASM(
-        if (Module.startGame) {
-            Module.ccall("start_game", 'void', ['number'], [$0]);
-        }
-    , &ctx);*/
 
     if (gameStarted) {
         ctx->game_state = context::GameState::GAMEPLAY;
