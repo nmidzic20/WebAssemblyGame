@@ -2,176 +2,59 @@ import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/thr
 
 let selectedAvatar = "";
 let avatarShape;
+
 const vertexShader = `
-varying vec2 vUv;
+    varying vec2 vUv;
 
-void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}
-
+    void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
 `;
 
 const fragmentShader = `
-varying vec2 vUv;
+    uniform float iTime;
+    uniform vec2 iResolution;
 
-const int MAX_MARCHING_STEPS = 10000;
-const float MIN_DIST = 0.0;
-const float MAX_DIST = 1000000.0;
-const float EPSILON = 0.1;
-const float size = 1000.0;
-const float scale = EPSILON * 10.0;
+    float Scale;
 
-vec3 surface_color(vec3 p)
-{
-    p /= scale * 10.0;
-    float color1 = length(sin(p / 100.0)) / 2.0;
-    return vec3(color1, color1, 0.0);
-}
-
-
-float planet_surface(vec3 p){
-  vec3 p1 = p/size;
-  p = sin(vec3(sin(p1.x)/p1.x,cos(p1.y)-p1.y,sin(p1.z)+p1.z))*size;
-  return length(p) - size;
-}
-
-float sceneSDF(vec3 p) {
-  p /= scale;
-  float result = planet_surface(p);
-  float i = 1.0;
-  for(int k = 0; k < 3; k++){
-    result = max(result, planet_surface(p*i)/(i));
-      i *= 10.0;
-  }
-  //float result = sceneSDF1(p/1000.0+sceneSDF1(p/1000.0));
-  return result*scale;
-}
-
-float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end) {
-  float depth = start;
-  float eps = EPSILON;
-  for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
-      float dist = sceneSDF(eye + depth * marchingDirection);
-      if (dist < eps) {
-    return depth;
-      }
-      depth += dist;
-      eps *= 1.01;
-      if (depth >= end) {
-          return end;
-      }
-  }
-  return end;
-}
-          
-vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
-  vec2 xy = fragCoord - size / 2.0;
-  float z = size.y / tan(radians(fieldOfView) / 2.0);
-  return normalize(vec3(xy, -z));
-}
-
-vec3 estimateNormal(vec3 p) {
-  return normalize(vec3(
-      sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
-      sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
-      sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
-  ));
-}
-
-vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
-                        vec3 lightPos, vec3 lightIntensity) {
-  lightPos = eye;
-  vec3 N = estimateNormal(p);
-  vec3 L = normalize(lightPos - p);
-  vec3 V = normalize(eye - p);
-  vec3 R = normalize(reflect(-L, N));
-  
-  float dotLN = dot(L, N);
-  float dotRV = dot(R, V);
-  
-  if (dotLN < 0.0) {
-      // Light not visible from this point on the surface
-      return vec3(0.0, 0.0, 0.0);
-  } 
-  
-  if (dotRV < 0.0) {
-      // Light reflection in opposite direction as viewer, apply only diffuse
-      // component
-      return lightIntensity * (k_d * dotLN);
-  }
-  return lightIntensity * (k_d * dotLN + k_s * pow(dotRV, alpha));
-}
-
-vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
-  const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
-  vec3 color = ambientLight * k_a;
-  
-  vec3 light1Pos = eye;
-  vec3 light1Intensity = vec3(0.4, 0.4, 0.4);
-  
-  color += phongContribForLight(k_d, k_s, alpha, p, eye,
-                                light1Pos,
-                                light1Intensity);
-  
-  //vec3 light2Pos = vec3(2.0 * sin(0.37),
-  //                      2.0 * cos(0.37),
-  //                      2.0);
-  //vec3 light2Intensity = vec3(0.4, 0.4, 0.4);
-  
-  //color += phongContribForLight(k_d, k_s, alpha, p, eye,
-  //                              light2Pos,
-  //                              light2Intensity);    
-  return color;
-}
-
-mat3 calculateViewMatrix(vec3 eye, vec3 center, vec3 up) {
-  // Based on gluLookAt man page
-  vec3 f = normalize(center - eye);
-  vec3 s = normalize(cross(f, up));
-  vec3 u = cross(s, f);
-  return mat3(s, u, -f);
-}
-
-uniform vec3 eye;
-uniform vec3 lookAt;
-uniform float iTime;
-
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-  vec3 viewDir = normalize(lookAt - eye);
-    float speed = 10.0;
-    vec3 eye = scale * vec3(cos(iTime) / 3.0, sin(iTime) / 1.8, iTime * speed) * size;
-
-    mat3 viewToWorld = calculateViewMatrix(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-
-    vec3 worldDir = viewToWorld * viewDir;
-
-    float dist = shortestDistanceToSurface(eye, worldDir, MIN_DIST, MAX_DIST);
-
-    if (dist > MAX_DIST - EPSILON) {
-        // Didn't hit anything
-        fragColor = vec4(0.0, 0.0, 0.0, 0.0);
-        return;
+    float map(vec3 p){
+        p = mod(p, 2.0) - 1.0;
+        p = abs(p) - 1.0;
+        if (p.x < p.z) p.xz = p.zx;
+        if (p.y < p.z) p.yz = p.zy;
+        if (p.x < p.y) p.xy = p.yx;
+        float s = 1.0;
+        for (int i = 0; i < 10; i++) {
+            float r2 = 2.0 / clamp(dot(p, p), 0.1, 1.0);
+            p = abs(p) * r2 - vec3(0.6, 0.6, 3.5);
+            s *= r2;
+        }
+        Scale = log2(s);
+        return length(p) / s;
     }
 
-    vec3 p = eye + dist * worldDir;
+    void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+        vec2 uv = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
+        vec3 p, ro = vec3(0.5 + 0.2 * sin(iTime * 0.03), 0.05 * cos(iTime * 0.03), -0.1 * iTime),
+        w = normalize(vec3(0.2, sin(iTime * 0.1), -1)),
+        u = normalize(cross(w, vec3(0, 1, 0))),
+        rd = mat3(u, cross(u, w), w) * normalize(vec3(uv, 2));
+        float h = 0.4, d, i;
+        for (i = 1.0; i < 100.0; i++) {
+            p = ro + rd * h;
+            d = map(p);
+            if (d < 0.001 || h > 10.0) break;
+            h += d;
+        }
+        fragColor.xyz = mix(vec3(1), vec3(cos(Scale * 2.5 + p * 1.8) * 0.5 + 0.5), 0.5) * 10.0 / i;
+        if (i < 5.0) fragColor.xyz = vec3(0.5, 0.2, 0.1) * (5.0 - i);
+        fragColor.a = 1.0;
+    }
 
-    vec3 K_a = surface_color((p));
-    vec3 K_d = K_a;
-    vec3 K_s = vec3(1.0, 1.0, 1.0);
-    float shininess = 10.0;
-
-    vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, eye);
-
-    fragColor = vec4(color, 1.0);
-}
-
-void main() {
-    mainImage(gl_FragColor, gl_FragCoord.xy);
-}
-
-
+    void main() {
+      mainImage(gl_FragColor, gl_FragCoord.xy);
+  }
 `;
 
 window.addEventListener("load", () => {
@@ -187,26 +70,21 @@ function setupShapes(container) {
   camera.lookAt(0, 0, 0);
   //scene.background = new THREE.Color("#0d0c18");
 
-  const showSTConfig = {
+  const config = {
     uniforms: {
-      eye: { value: camera.position },
-      lookAt: { value: new THREE.Vector3() },
+      // ...
       iTime: { value: 0.0 },
+      iResolution: { value: new THREE.Vector2(400, 600) },
     },
     vertexShader: vertexShader,
     fragmentShader: fragmentShader,
     side: THREE.DoubleSide,
   };
 
-  let showSTMaterial = new THREE.ShaderMaterial(showSTConfig);
-  /*const boxMesh = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(16 * 3, (16 / 4) * 3, (16 / 2) * 3, 4, 4, 4),
-    showSTMaterial
-  );
-  scene.add(boxMesh);*/
-  const planeGeometry = new THREE.PlaneBufferGeometry(50, 50); // Set the size as needed
+  let shaderMaterial = new THREE.ShaderMaterial(config);
+  const planeGeometry = new THREE.PlaneBufferGeometry(50, 50);
 
-  const planeMesh = new THREE.Mesh(planeGeometry, showSTMaterial);
+  const planeMesh = new THREE.Mesh(planeGeometry, shaderMaterial);
   scene.add(planeMesh);
 
   const geometryCube = new THREE.BoxGeometry(10, 10, 10);
@@ -343,9 +221,8 @@ function setupShapes(container) {
       cone.rotation.y -= 0.01;
     }
 
-    showSTMaterial.uniforms.eye.value.copy(camera.position);
-    camera.getWorldDirection(showSTMaterial.uniforms.lookAt.value);
-    showSTMaterial.uniforms.iTime.value = performance.now() / 1000;
+    // Update uniforms here if needed
+    shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
 
     renderer.render(scene, camera);
   };
