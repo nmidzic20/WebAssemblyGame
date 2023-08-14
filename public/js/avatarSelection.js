@@ -3,6 +3,18 @@ import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/thr
 let selectedAvatar = "";
 let avatarShape;
 
+fetch("./shaders/vertexShader.glsl")
+  .then((response) => response.text())
+  .then((vertexShaderCode) => {
+    fetch("./shaders/fragmentShader.glsl")
+      .then((response) => response.text())
+      .then((fragmentShaderCode) => {
+        setupShapes(avatarContainer, vertexShaderCode, fragmentShaderCode);
+      });
+  })
+  .catch((error) => console.error("Error loading shader files:", error));
+
+/*
 const vertexShader = `
     varying vec2 vUv;
 
@@ -61,14 +73,13 @@ window.addEventListener("load", () => {
   if (avatarContainer) {
     setupShapes(avatarContainer);
   }
-});
+});*/
 
-function setupShapes(container) {
+function setupShapes(container, vertexShader, fragmentShader) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera();
   camera.position.set(10, 10, 60);
   camera.lookAt(0, 0, 0);
-  //scene.background = new THREE.Color("#0d0c18");
 
   const config = {
     uniforms: {
@@ -89,16 +100,16 @@ function setupShapes(container) {
 
   const geometryCube = new THREE.BoxGeometry(10, 10, 10);
   geometryCube.center();
-  const materialCube = new THREE.MeshBasicMaterial({ color: 0xffff00 }); //new THREE.MeshNormalMaterial({
-  //side: THREE.DoubleSide,
-  //});
+  const materialCube = new THREE.MeshNormalMaterial({
+    side: THREE.DoubleSide,
+  });
   const cube = new THREE.Mesh(geometryCube, materialCube);
   scene.add(cube);
 
   const geometryCone = new THREE.ConeGeometry(5, 20, 32);
-  const materialCone = new THREE.MeshBasicMaterial({ color: 0xffff00 }); //new THREE.MeshNormalMaterial({
-  //side: THREE.DoubleSide,
-  //});
+  const materialCone = new THREE.MeshNormalMaterial({
+    side: THREE.DoubleSide,
+  });
   const cone = new THREE.Mesh(geometryCone, materialCone);
   cone.position.x = 15;
   scene.add(cone);
@@ -111,8 +122,7 @@ function setupShapes(container) {
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
 
-  const originalCubeColor = cube.material.color.getHex();
-  const originalConeColor = cone.material.color.getHex();
+  const originalMaterial = cube.material;
 
   const onMouseMove = (event) => {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -125,17 +135,16 @@ function setupShapes(container) {
 
     if (intersects.length > 0) {
       const hoveredObject = intersects[0].object;
-
-      hoveredObject.material.color.setHex(0xff0000);
+      hoveredObject.material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     } else {
-      cube.material.color.setHex(originalCubeColor);
-      cone.material.color.setHex(originalConeColor);
+      cube.material = originalMaterial;
+      cone.material = originalMaterial;
     }
   };
 
   const onMouseOut = () => {
-    cube.material.color.setHex(originalCubeColor);
-    cone.material.color.setHex(originalConeColor);
+    cube.material = originalMaterial;
+    cone.material = originalMaterial;
   };
 
   const onMouseClick = (event) => {
@@ -221,7 +230,7 @@ function setupShapes(container) {
       cone.rotation.y -= 0.01;
     }
 
-    // Update uniforms here if needed
+    // Update shader uniforms
     shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
 
     renderer.render(scene, camera);
