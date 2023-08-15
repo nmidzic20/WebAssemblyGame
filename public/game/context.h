@@ -14,7 +14,7 @@ namespace Helper {
 }
 
 struct context {
-    const float WINDOW_WIDTH = 1000; 
+    const float WINDOW_WIDTH = 800; 
     const float WINDOW_HEIGHT = 600; 
     const int NUMBER_COLLIDABLES = 5;
     const float PROJECTILE_COOLDOWN_TIME = 0.2f;
