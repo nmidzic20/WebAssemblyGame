@@ -29,13 +29,26 @@ app.get("/play", async (req, res) => {
 });
 
 app.get("/leaderboard", async (req, res) => {
-  const scores = await getScoresFromDatabase();
-  const scoresTable = generateScoresTable(scores);
+  const scores = await getPlayersPaginated(1, 10);
+  const scoresTable = generatePlayersTable(scores);
 
   let leaderboardHtml = await loadPage("leaderboard");
   leaderboardHtml = leaderboardHtml.replace("#content#", scoresTable);
 
   res.send(leaderboardHtml);
+});
+
+app.post("/players", async (req, res) => {
+  const players = await getPlayers();
+  console.log("Players count: " + players.length);
+  res.send(players);
+});
+
+app.post("/table", async (req, res) => {
+  const page = parseInt(req.body.page) || 1;
+  const itemsPerPage = parseInt(req.body.itemsPerPage) || 10;
+  const scores = await getPlayersPaginated(page, itemsPerPage);
+  res.send(scores);
 });
 
 app.post("/save_player", (req, res) => {
@@ -71,9 +84,9 @@ function loadHTML(path) {
   return fs.readFile(__dirname + "/public/html/" + path + ".html", "UTF-8");
 }
 
-async function getScoresFromDatabase() {
+async function getPlayers() {
   return new Promise((resolve, reject) => {
-    db.all("SELECT * FROM players", (err, rows) => {
+    db.all("SELECT * FROM players", [], (err, rows) => {
       if (err) {
         reject(err);
       } else {
@@ -83,13 +96,51 @@ async function getScoresFromDatabase() {
   });
 }
 
-function generateScoresTable(scores) {
-  let tableHtml = "<table><tr><th>ID</th><th>Username</th><th>Score</th></tr>";
+async function getPlayersPaginated(page, itemsPerPage) {
+  const offset = (page - 1) * itemsPerPage;
+  return new Promise((resolve, reject) => {
+    db.all(
+      "SELECT * FROM players LIMIT ? OFFSET ?",
+      [itemsPerPage, offset],
+      (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      }
+    );
+  });
+}
+
+function generatePlayersTable(scores) {
+  const selectString = generateSelectWithOptions();
+
+  let tableOptions =
+    "<div id='table-options'>" +
+    selectString +
+    "<div id='pagination'></div></div>";
+
+  let tableHtml =
+    tableOptions +
+    "<div id='table-wrapper'><table><tr><th>ID</th><th>Username</th><th>Score</th></tr>";
 
   for (const score of scores) {
     tableHtml += `<tr><td>${score.id}</td><td>${score.username}</td><td>${score.score}</td></tr>`;
   }
 
-  tableHtml += "</table>";
+  tableHtml += "</table></div>";
   return tableHtml;
+}
+
+function generateSelectWithOptions() {
+  const options = [5, 10, 20];
+  let selectHTML = '<select id="itemsPerPageSelect">';
+
+  for (const option of options) {
+    selectHTML += `<option value="${option}">${option}</option>`;
+  }
+
+  selectHTML += "</select>";
+  return selectHTML;
 }
