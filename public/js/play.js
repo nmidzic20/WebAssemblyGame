@@ -11,7 +11,7 @@ submitButton.addEventListener("click", function () {
   let username = usernameInput.value;
   let score = Module.playerScore;
 
-  fetch("/save_player", {
+  fetch("/api/players", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

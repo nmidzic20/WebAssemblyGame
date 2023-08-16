@@ -29,29 +29,24 @@ app.get("/play", async (req, res) => {
 });
 
 app.get("/leaderboard", async (req, res) => {
-  const scores = await getPlayersPaginated(1, 10);
-  const scoresTable = generatePlayersTable(scores);
+  const players = await getPlayersPaginated(1, 10);
+  const playersTable = generatePlayersTable(players);
 
   let leaderboardHtml = await loadPage("leaderboard");
-  leaderboardHtml = leaderboardHtml.replace("#content#", scoresTable);
+  leaderboardHtml = leaderboardHtml.replace("#content#", playersTable);
 
   res.send(leaderboardHtml);
 });
 
-app.post("/players", async (req, res) => {
-  const players = await getPlayers();
-  console.log("Players count: " + players.length);
+app.get("/api/players", async (req, res) => {
+  let players;
+  if (req.query.itemsPerPage && req.query.page)
+    players = await getPlayersPaginated(req.query.page, req.query.itemsPerPage);
+  else players = await getPlayers();
   res.send(players);
 });
 
-app.post("/table", async (req, res) => {
-  const page = parseInt(req.body.page) || 1;
-  const itemsPerPage = parseInt(req.body.itemsPerPage) || 10;
-  const scores = await getPlayersPaginated(page, itemsPerPage);
-  res.send(scores);
-});
-
-app.post("/save_player", (req, res) => {
+app.post("/api/players", (req, res) => {
   const { username, score } = req.body;
 
   db.run(
@@ -68,6 +63,13 @@ app.post("/save_player", (req, res) => {
     }
   );
 });
+
+/*app.post("/table", async (req, res) => {
+  const page = parseInt(req.body.page) || 1;
+  const itemsPerPage = parseInt(req.body.itemsPerPage) || 10;
+  const data = await getPlayersPaginated(page, itemsPerPage);
+  res.send(data);
+});*/
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
@@ -113,7 +115,7 @@ async function getPlayersPaginated(page, itemsPerPage) {
   });
 }
 
-function generatePlayersTable(scores) {
+function generatePlayersTable(players) {
   const selectString = generateSelectWithOptions();
 
   let tableOptions =
@@ -125,8 +127,8 @@ function generatePlayersTable(scores) {
     tableOptions +
     "<div id='table-wrapper'><table><tr><th>ID</th><th>Username</th><th>Score</th></tr>";
 
-  for (const score of scores) {
-    tableHtml += `<tr><td>${score.id}</td><td>${score.username}</td><td>${score.score}</td></tr>`;
+  for (const player of players) {
+    tableHtml += `<tr><td>${player.id}</td><td>${player.username}</td><td>${player.score}</td></tr>`;
   }
 
   tableHtml += "</table></div>";

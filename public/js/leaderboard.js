@@ -1,34 +1,25 @@
 const table = document.getElementsByTagName("table")[0];
 const pagination = document.getElementById("pagination");
 const selectElement = document.getElementById("itemsPerPageSelect");
-let defaultItemsPerPage = selectElement.value;
+let selectedItemsPerPage = 10;
+let currentPage = 1;
 
+selectElement.value = selectedItemsPerPage;
 createPagination();
 showPage(1);
 
 selectElement.addEventListener("change", async () => {
-  defaultItemsPerPage = selectElement.value;
+  selectedItemsPerPage = selectElement.value;
   createPagination();
-  showPage(1, selectElement.value);
+  showPage(1);
 });
 
 function createPagination() {
-  const requestData = {
-    page: 1,
-    itemsPerPage: defaultItemsPerPage,
-  };
-
-  fetch("/players", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(requestData),
-  })
+  fetch("/api/players")
     .then((response) => response.json())
     .then((data) => {
       const numRows = data.length;
-      const numPages = Math.ceil(numRows / defaultItemsPerPage);
+      const numPages = Math.ceil(numRows / selectedItemsPerPage);
       let links = "";
       for (let i = 1; i <= numPages; i++) {
         links += `<button onclick="showPage(${i})">${i}</button>`;
@@ -40,20 +31,8 @@ function createPagination() {
     });
 }
 
-function showPage(page, itemsPerPage = defaultItemsPerPage) {
-  console.log("Show " + page);
-  const requestData = {
-    page: page,
-    itemsPerPage: itemsPerPage,
-  };
-
-  fetch("/table", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(requestData),
-  })
+function showPage(page) {
+  fetch(`/api/players?itemsPerPage=${selectedItemsPerPage}&page=${page}`)
     .then((response) => response.json())
     .then((data) => {
       let tableHtml = "<tr><th>ID</th><th>Username</th><th>Score</th></tr>";
@@ -64,8 +43,25 @@ function showPage(page, itemsPerPage = defaultItemsPerPage) {
 
       tableHtml += "</table>";
       table.innerHTML = tableHtml;
+
+      highlightCurrentPageButton(page);
     })
     .catch((error) => {
       console.error("Error:", error);
     });
+}
+
+function highlightCurrentPageButton(page) {
+  let previousPageButton =
+    document.getElementsByTagName("button")[currentPage - 1];
+  previousPageButton.id = null;
+  console.log("Prev");
+  console.log(currentPage);
+
+  currentPage = page;
+  console.log("Curr");
+  console.log(currentPage);
+  let currentPageButton =
+    document.getElementsByTagName("button")[currentPage - 1];
+  currentPageButton.id = "current-page";
 }
