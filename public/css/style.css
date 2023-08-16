@@ -92,16 +92,16 @@ main {
   transition: color 0.3s ease;
 }
 
+.navbar .active-page {
+  color: rgb(57, 179, 220);
+}
+
 .navbar a:hover {
   color: rgb(57, 179, 220);
 }
 
 .navbar a + a {
   margin-left: 20px;
-}
-
-#active-page {
-  color: rgb(57, 179, 220);
 }
 
 #main-wrapper {

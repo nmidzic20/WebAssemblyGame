@@ -69,9 +69,16 @@ app.listen(port, () => {
 });
 
 async function loadPage(pageTitle) {
-  let pages = [loadHTML(pageTitle), loadHTML("nav")];
-  let [page, nav] = await Promise.all(pages);
+  let pages = [loadHTML(pageTitle), loadHTML("nav"), loadHTML("head")];
+  let [page, nav, head] = await Promise.all(pages);
   page = page.replace("#nav#", nav);
+  page = page.replace("#head#", head);
+
+  const linkToReplace = `href="/${pageTitle}"`;
+  const markPageActive = `${linkToReplace} class="active-page"`;
+
+  page = page.replace(linkToReplace, markPageActive);
+
   return page;
 }
 
