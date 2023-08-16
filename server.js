@@ -64,13 +64,6 @@ app.post("/api/players", (req, res) => {
   );
 });
 
-/*app.post("/table", async (req, res) => {
-  const page = parseInt(req.body.page) || 1;
-  const itemsPerPage = parseInt(req.body.itemsPerPage) || 10;
-  const data = await getPlayersPaginated(page, itemsPerPage);
-  res.send(data);
-});*/
-
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
@@ -102,7 +95,7 @@ async function getPlayersPaginated(page, itemsPerPage) {
   const offset = (page - 1) * itemsPerPage;
   return new Promise((resolve, reject) => {
     db.all(
-      "SELECT * FROM players LIMIT ? OFFSET ?",
+      "SELECT * FROM players ORDER BY id DESC LIMIT ? OFFSET ?",
       [itemsPerPage, offset],
       (err, rows) => {
         if (err) {
@@ -136,7 +129,7 @@ function generatePlayersTable(players) {
 }
 
 function generateSelectWithOptions() {
-  const options = [5, 10, 20];
+  const options = [2, 5, 10, 20];
   let selectHTML = '<select id="itemsPerPageSelect">';
 
   for (const option of options) {
