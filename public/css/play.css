@@ -1,0 +1,74 @@
+/* Canvases */
+
+#canvas-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  justify-content: center;
+}
+
+#threejs_canvas_wrapper {
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+#game-over-container {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 1;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
+#username-container {
+  display: flex;
+  flex-direction: row;
+  column-gap: 15px;
+}
+
+#start-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 1;
+}
+
+input {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+#start-button {
+  display: none;
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#submit-button,
+#restart-button {
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#start-button:hover,
+#submit-button:hover,
+#restart-button:hover {
+  background-color: rgb(57, 179, 220);
+}

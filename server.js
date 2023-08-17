@@ -72,6 +72,8 @@ async function loadPage(pageTitle) {
   let pages = [loadHTML(pageTitle), loadHTML("nav"), loadHTML("head")];
   let [page, nav, head] = await Promise.all(pages);
   page = page.replace("#nav#", nav);
+
+  head += `<link rel="stylesheet" type="text/css" href="../css/${pageTitle}.css" />`;
   page = page.replace("#head#", head);
 
   const linkToReplace = `href="/${pageTitle}"`;
