@@ -194,8 +194,15 @@ void render_frame(context *ctx) {
 void main_loop(void *arg) {
     context *ctx = static_cast<context*>(arg);
 
-    SDL_SetRenderDrawColor(ctx->renderer, 160, 0, 200, 255);
-    SDL_RenderClear(ctx->renderer);
+    //SDL_SetRenderDrawColor(ctx->renderer, 160, 0, 200, 255);
+    //SDL_RenderClear(ctx->renderer);
+    SDL_Rect dest_rect;
+    dest_rect.x = 0;
+    dest_rect.y = 0;
+    dest_rect.w = ctx->WINDOW_WIDTH;
+    dest_rect.h = ctx->WINDOW_HEIGHT;
+
+    SDL_RenderCopy(ctx->renderer, ctx->images[ctx->start_image], nullptr, &dest_rect);
 
     if (gameStarted) {
         ctx->game_state = context::GameState::GAMEPLAY;
@@ -247,7 +254,8 @@ int main(int argc, char *argv[]) {
     }, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT);
 
     try {
-        ctx.background_image = load_image("./assets/image.png", &ctx);
+        ctx.background_image = load_image("./assets/background.jpg", &ctx);
+        ctx.start_image = load_image("./assets/start.png", &ctx);
     }
     catch (const exception &e) {
         cerr << "Error: " << e.what() << endl;

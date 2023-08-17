@@ -1,4 +1,5 @@
 import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js";
+import { OBJLoader } from "../OBJLoader.js";
 
 let selectedAvatar = "";
 let avatarShape;
@@ -35,9 +36,10 @@ function setupShapes(container, vertexShader, fragmentShader) {
   let shaderMaterial = new THREE.ShaderMaterial(config);
   const planeGeometry = new THREE.PlaneBufferGeometry(80, 80);
 
+  // Background plane to display shader
   const planeMesh = new THREE.Mesh(planeGeometry, shaderMaterial);
   planeMesh.position.set(0, 0, -10);
-  scene.add(planeMesh);
+  //scene.add(planeMesh);
 
   const geometryCube = new THREE.BoxGeometry(10, 10, 10);
   geometryCube.center();
@@ -45,7 +47,7 @@ function setupShapes(container, vertexShader, fragmentShader) {
     side: THREE.DoubleSide,
   });
   const cube = new THREE.Mesh(geometryCube, materialCube);
-  scene.add(cube);
+  //scene.add(cube);
 
   const geometryCone = new THREE.ConeGeometry(5, 20, 32);
   const materialCone = new THREE.MeshNormalMaterial({
@@ -53,7 +55,32 @@ function setupShapes(container, vertexShader, fragmentShader) {
   });
   const cone = new THREE.Mesh(geometryCone, materialCone);
   cone.position.x = 15;
-  scene.add(cone);
+  //scene.add(cone);
+
+  const loader = new OBJLoader();
+  loader.load(
+    "../ship/prometheus.obj",
+    (object) => {
+      // Create material
+      const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+
+      // Assign material to all child meshes in the loaded object
+      object.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.material = material;
+        }
+      });
+
+      // Add the object to the scene
+      scene.add(object);
+    },
+    (xhr) => {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    },
+    (error) => {
+      console.error("An error occurred", error);
+    }
+  );
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   container.appendChild(renderer.domElement);

@@ -53,6 +53,7 @@ struct context {
     
     std::vector<SDL_Texture*> images;
     int background_image, background_image_width, background_image_height;
+    int start_image;
 
     float background_offset = 0.0f;
     float scroll_speed = 1.0f;
