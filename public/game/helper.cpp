@@ -15,6 +15,10 @@ bool Helper::is_outside_window_bounds(Collidable *collidable) {
     return collidable->x + collidable->width < 0.0f;
 }
 
+bool Helper::is_game_over(const context *ctx) {
+    return ctx->lives <= 0;
+}
+
 void Helper::reset_collided_flag(const context *ctx) {
     SDL_Rect cubeRect = {static_cast<int>(ctx->player_position.x - ctx->player_size / 2), static_cast<int>(ctx->player_position.y - ctx->player_size / 2), static_cast<int>(ctx->player_size), static_cast<int>(ctx->player_size)};
 
@@ -29,6 +33,12 @@ void Helper::reset_collided_flag(const context *ctx) {
     }
 }
 
-bool Helper::is_game_over(const context *ctx) {
-    return ctx->lives <= 0;
+int Helper::load_image(std::string image_path, context* ctx) {
+    SDL_Texture* texture = IMG_LoadTexture(ctx->renderer, image_path.c_str());
+    if (!texture) {
+        throw std::runtime_error("Failed to load image: " + image_path + "\nError: " + SDL_GetError());
+    }
+
+    ctx->images.push_back(texture);
+    return ctx->images.size() - 1;
 }

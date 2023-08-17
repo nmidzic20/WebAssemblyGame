@@ -101,16 +101,6 @@ extern "C" {
     }
 }
 
-int load_image(string image_path, context* ctx) {
-    SDL_Texture* texture = IMG_LoadTexture(ctx->renderer, image_path.c_str());
-    if (!texture) {
-        throw runtime_error("Failed to load image: " + image_path + "\nError: " + SDL_GetError());
-    }
-
-    ctx->images.push_back(texture);
-    return ctx->images.size() - 1;
-}
-
 void init_collidables(context *ctx) {
     for (int i = 0; i < ctx->NUMBER_COLLIDABLES; i++) {
         Collidable *coin = new Collidable(
@@ -254,8 +244,8 @@ int main(int argc, char *argv[]) {
     }, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT);
 
     try {
-        ctx.background_image = load_image("./assets/background.jpg", &ctx);
-        ctx.start_image = load_image("./assets/start.png", &ctx);
+        ctx.background_image = Helper::load_image("./assets/background.jpg", &ctx);
+        ctx.start_image = Helper::load_image("./assets/start.png", &ctx);
     }
     catch (const exception &e) {
         cerr << "Error: " << e.what() << endl;

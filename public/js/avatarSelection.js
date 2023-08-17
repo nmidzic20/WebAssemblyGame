@@ -1,5 +1,5 @@
-import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js";
-import { OBJLoader } from "../OBJLoader.js";
+import * as THREE from "three"; //"https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
 let selectedAvatar = "";
 let avatarShape;
@@ -34,12 +34,12 @@ function setupShapes(container, vertexShader, fragmentShader) {
   };
 
   let shaderMaterial = new THREE.ShaderMaterial(config);
-  const planeGeometry = new THREE.PlaneBufferGeometry(80, 80);
+  const planeGeometry = new THREE.PlaneGeometry(80, 80);
 
   // Background plane to display shader
   const planeMesh = new THREE.Mesh(planeGeometry, shaderMaterial);
   planeMesh.position.set(0, 0, -10);
-  //scene.add(planeMesh);
+  scene.add(planeMesh);
 
   const geometryCube = new THREE.BoxGeometry(10, 10, 10);
   geometryCube.center();
@@ -55,24 +55,40 @@ function setupShapes(container, vertexShader, fragmentShader) {
   });
   const cone = new THREE.Mesh(geometryCone, materialCone);
   cone.position.x = 15;
-  //scene.add(cone);
+  scene.add(cone);
 
+  // Add ambient light to the scene - otherwise objects from .obj file appear as black
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Soft white light
+  scene.add(ambientLight);
+
+  // Add directional light to the scene - otherwise objects from .obj file appear as black
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight.position.set(1, 1, 1).normalize(); // Position the light
+  scene.add(directionalLight);
+
+  let shipObject;
   const loader = new OBJLoader();
   loader.load(
-    "../ship/prometheus.obj",
+    "../assets/ship/prometheus.obj",
     (object) => {
-      // Create material
-      const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+      shipObject = object;
 
-      // Assign material to all child meshes in the loaded object
-      object.traverse((child) => {
+      const materialShip = new THREE.MeshNormalMaterial({
+        side: THREE.DoubleSide,
+      });
+
+      shipObject.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          child.material = material;
+          child.material = materialShip;
         }
       });
 
+      shipObject.position.set(0, -15, 0);
+      shipObject.rotation.set(0, Math.PI / 2, 0);
+      shipObject.scale.set(4, 4, 4);
+
       // Add the object to the scene
-      scene.add(object);
+      scene.add(shipObject);
     },
     (xhr) => {
       console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
@@ -171,6 +187,10 @@ function setupShapes(container, vertexShader, fragmentShader) {
 
   const render = () => {
     requestAnimationFrame(render);
+
+    if (shipObject) {
+      shipObject.rotation.y += 0.01;
+    }
 
     if (playing === true) {
       cube.rotation.set(0, 0, 0);
