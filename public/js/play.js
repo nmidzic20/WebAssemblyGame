@@ -1,11 +1,14 @@
 Module = {};
 playing = false;
 
+let startContainer = document.getElementById("start-container");
+let gameOverContainer = document.getElementById("game-over-container");
+let usernameContainer = document.getElementById("username-container");
 let usernameInput = document.getElementById("username-input");
 let submitButton = document.getElementById("submit-button");
 let startButton = document.getElementById("start-button");
 let restartButton = document.getElementById("restart-button");
-let avatarContainer = document.getElementById("avatar-container");
+let avatarContainer = document.getElementById("threejs_canvas_wrapper");
 
 submitButton.addEventListener("click", function () {
   let username = usernameInput.value;
@@ -23,11 +26,11 @@ submitButton.addEventListener("click", function () {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log(data.message);
       usernameInput.value = "";
       Module.gameDataStored = true;
       usernameInput.style.display = "none";
       submitButton.style.display = "none";
+      usernameContainer.querySelector("p").textContent = data.message;
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -48,7 +51,7 @@ startButton.addEventListener("click", function () {
 
 restartButton.addEventListener("click", function () {
   Module.ccall("restart_game", "void", ["number"], [Module.context]);
-  document.getElementById("username-container").style.display = "none";
+  gameOverContainer.style.display = "none";
 });
 
 if (!Module.canvas) {
@@ -70,12 +73,10 @@ function loadIndexJS() {
 Module.gameDataStored = false;
 
 Module.onGameLoaded = function (width, height) {
-  let startContainer = document.getElementById("start-container");
-  let usernameContainer = document.getElementById("username-container");
   startContainer.style.width = width + "px";
   startContainer.style.height = height + "px";
-  usernameContainer.style.width = width + "px";
-  usernameContainer.style.height = height + "px";
+  gameOverContainer.style.width = width + "px";
+  gameOverContainer.style.height = height + "px";
 
   startButton.style.display = "block";
   avatarContainer.style.display = "flex";

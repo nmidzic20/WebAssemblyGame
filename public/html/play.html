@@ -3,14 +3,6 @@
   <head>
     <title>Game</title>
     #head#
-    <!--<meta charset="UTF-8" />
-    <link rel="stylesheet" type="text/css" href="../css/style.css" />
-    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon" />
-    <link
-      rel="shortcut icon"
-      href="../assets/favicon.ico"
-      type="image/x-icon"
-    />-->
   </head>
   <body>
     <header>
@@ -21,20 +13,21 @@
       <div id="start-container">
         <button id="start-button">START</button>
       </div>
-      <div id="username-container">
-        <input
-          type="text"
-          id="username-input"
-          placeholder="Enter your username"
-        />
-        <button id="submit-button">Submit</button>
-        <div id="restart-container">
-          <button id="restart-button">Restart</button>
+      <div id="game-over-container">
+        <div id="username-container">
+          <input
+            type="text"
+            id="username-input"
+            placeholder="Enter your username"
+          />
+          <button id="submit-button">Submit</button>
+          <p id="message"></p>
         </div>
+        <button id="restart-button">Restart</button>
       </div>
-      <div id="main-wrapper">
+      <div id="canvas-wrapper">
         <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
-        <div id="avatar-container"></div>
+        <div id="threejs_canvas_wrapper"></div>
       </div>
     </main>
     <footer></footer>

@@ -14,7 +14,7 @@ namespace Helper {
 }
 
 struct context {
-    const float WINDOW_WIDTH = 800; 
+    const float WINDOW_WIDTH = 700; 
     const float WINDOW_HEIGHT = 600; 
     const int NUMBER_COLLIDABLES = 5;
     const float PROJECTILE_COOLDOWN_TIME = 0.2f;
@@ -46,6 +46,7 @@ struct context {
 
     float player_size = 50.0f;
     Point player_position;
+    int player_speed = 14;
     bool prevCollision = false;
 
     float lastProjectileFiredTime = 0.0f;

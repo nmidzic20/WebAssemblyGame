@@ -76,11 +76,11 @@ void Renderer::draw_game_over(context *ctx) {
     int textWidth, textHeight;
 
     TTF_SizeText(ctx->font, game_over.c_str(), &textWidth, &textHeight);
-    context::Text text = { game_over, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT - 5.5f * textHeight) / 2 } };
+    context::Text text = { game_over, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, 40.0f}};
     Renderer::draw_text(ctx, text);
 
     TTF_SizeText(ctx->font, score_achieved.c_str(), &textWidth, &textHeight);
-    text = { score_achieved, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, (ctx->WINDOW_HEIGHT - 4.0f * textHeight) / 2 } };
+    text = { score_achieved, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, 50.0f + textHeight}};
     Renderer::draw_text(ctx, text);
 }
 

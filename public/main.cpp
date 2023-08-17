@@ -32,7 +32,6 @@ extern "C" {
 
     EMSCRIPTEN_KEEPALIVE
     void start_game(context *ctx) {
-        cout << "Called startgame" << endl;
         gameStarted = true;
     }
     /*Cannot this way due to asynchronous nature of doing main_loop not registering this change in ctx->game_state
@@ -54,6 +53,7 @@ extern "C" {
 
         EM_ASM(
             Module.gameDataStored = false;
+            document.getElementById("username-container").querySelector("p").textContent = "";
             document.getElementById("username-input").style.display = "block";
             document.getElementById("submit-button").style.display = "block";
         );
@@ -75,22 +75,22 @@ extern "C" {
             case 38: // Up arrow code
             case 'W':
             case 'w':
-                ctx->player_position.y = max(ctx->player_position.y - 10, ctx->player_size / 2);
+                ctx->player_position.y = max(ctx->player_position.y - ctx->player_speed, ctx->player_size / 2);
                 break;
             case 40: // Down arrow code
             case 'S':
             case 's':
-                ctx->player_position.y = min(ctx->player_position.y + 10, ctx->WINDOW_HEIGHT - ctx->player_size / 2);
+                ctx->player_position.y = min(ctx->player_position.y + ctx->player_speed, ctx->WINDOW_HEIGHT - ctx->player_size / 2);
                 break;
             case 37: // Left arrow code
             case 'A':
             case 'a':
-                ctx->player_position.x = max(ctx->player_position.x - 10, ctx->player_size / 2);
+                ctx->player_position.x = max(ctx->player_position.x - ctx->player_speed, ctx->player_size / 2);
                 break;
             case 39: // Right arrow code
             case 'D':
             case 'd':
-                ctx->player_position.x = min(ctx->player_position.x + 10, ctx->WINDOW_WIDTH - ctx->player_size / 2);
+                ctx->player_position.x = min(ctx->player_position.x + ctx->player_speed, ctx->WINDOW_WIDTH - ctx->player_size / 2);
                 break;
         }
     }
@@ -216,14 +216,14 @@ void main_loop(void *arg) {
 
     if (Helper::is_game_over(ctx))
         EM_ASM(
-            var usernameContainer = document.getElementById("username-container");
+            var usernameContainer = document.getElementById("game-over-container");
             if (usernameContainer.style.display != "flex" && Module.gameDataStored === false) {
                 usernameContainer.style.display = "flex";
             }
         );
     else
         EM_ASM(
-            var usernameContainer = document.getElementById("username-container");
+            var usernameContainer = document.getElementById("game-over-container");
             if (usernameContainer.style.display != "none") {
                 usernameContainer.style.display = "none";
             }

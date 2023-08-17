@@ -54,7 +54,6 @@ function showPage(page) {
 function createPagination(page) {
   let links = "";
 
-  console.log("PG NUM " + numPages);
   if (numPages <= 7)
     for (let i = 1; i <= numPages; i++) {
       links += `<button onclick="showPage(${i})" id=${

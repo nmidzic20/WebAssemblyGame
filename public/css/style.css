@@ -1,3 +1,4 @@
+/* General */
 @font-face {
   font-family: "Ranchers-Regular";
   src: url("../assets/Ranchers-Regular.ttf") format("truetype");
@@ -22,53 +23,82 @@ main {
   padding-top: 15px;
 }
 
-#table-wrapper {
+/* Canvases */
+
+#canvas-wrapper {
+  width: 100%;
+  height: 100%;
   display: flex;
+  flex-direction: row;
+  position: relative;
   justify-content: center;
 }
 
-#table-options {
-  display: flex;
-  width: 500px;
-  justify-content: space-between;
+#threejs_canvas_wrapper {
+  display: none;
+  justify-content: center;
   align-items: center;
-  padding: 15px;
-  margin: 0 auto;
 }
 
-#itemsPerPageSelect {
-  padding: 8px;
+#game-over-container {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 1;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
+#username-container {
+  display: flex;
+  flex-direction: row;
+  column-gap: 15px;
+}
+
+#start-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 1;
+}
+
+input {
+  padding: 10px;
+  border-radius: 8px;
   border: none;
-  background-color: #f2f2f2;
-  color: #333;
-  border-radius: 5px;
-  cursor: pointer;
 }
 
-#itemsPerPageSelect option {
-  padding: 5px;
-  background-color: #f2f2f2;
-  color: #333;
-}
-
-#pagination button {
-  background-color: rgb(18, 125, 161);
+#start-button {
+  display: none;
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: #007bff;
   color: white;
   border: none;
-  padding: 10px 15px;
-  margin: 0 5px;
-  cursor: pointer;
   border-radius: 5px;
+  cursor: pointer;
 }
 
-#pagination button:not(.dots-button):hover {
+#submit-button,
+#restart-button {
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#start-button:hover,
+#submit-button:hover,
+#restart-button:hover {
   background-color: rgb(57, 179, 220);
 }
 
-#pagination #current-page {
-  background-color: rgb(57, 179, 220);
-}
-
+/* Navbar */
 .navbar {
   background-color: rgb(52, 48, 48);
   position: fixed;
@@ -104,49 +134,10 @@ main {
   margin-left: 20px;
 }
 
-#main-wrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  position: relative;
-}
-
-#avatar-container {
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-#username-container {
-  display: none;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  z-index: 1;
-}
-
-#start-container {
+/* Table */
+#table-wrapper {
   display: flex;
   justify-content: center;
-  align-items: center;
-  position: absolute;
-  z-index: 1;
-}
-
-#start-button {
-  display: none;
-  padding: 10px 20px;
-  font-size: 18px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-#start-button:hover {
-  background-color: #0056b3;
 }
 
 table {
@@ -205,4 +196,50 @@ table td {
   padding: 8px;
   max-width: 500px;
   word-wrap: break-word;
+}
+
+/* Table select options */
+
+#table-options {
+  display: flex;
+  width: 500px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  margin: 0 auto;
+}
+
+#itemsPerPageSelect {
+  padding: 8px;
+  border: none;
+  background-color: #f2f2f2;
+  color: #333;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#itemsPerPageSelect option {
+  padding: 5px;
+  background-color: #f2f2f2;
+  color: #333;
+}
+
+/* Pagination */
+
+#pagination button {
+  background-color: rgb(18, 125, 161);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin: 0 5px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+#pagination button:not(.dots-button):hover {
+  background-color: rgb(57, 179, 220);
+}
+
+#pagination #current-page {
+  background-color: rgb(57, 179, 220);
 }

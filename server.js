@@ -57,8 +57,8 @@ app.post("/api/players", (req, res) => {
         console.error("Error saving player:", err);
         res.status(500).json({ message: "Error saving player" });
       } else {
-        console.log("Player saved successfully");
-        res.json({ message: "Player saved successfully" });
+        console.log(`Player ${username} saved`);
+        res.json({ message: `Player ${username} saved` });
       }
     }
   );
