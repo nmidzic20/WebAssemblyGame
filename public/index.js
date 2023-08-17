@@ -11193,9 +11193,9 @@ var _free = Module["_free"] = createExportWrapper("free");
 /** @type {function(...*):?} */
 var _malloc = createExportWrapper("malloc");
 /** @type {function(...*):?} */
-var setTempRet0 = createExportWrapper("setTempRet0");
-/** @type {function(...*):?} */
 var ___errno_location = createExportWrapper("__errno_location");
+/** @type {function(...*):?} */
+var setTempRet0 = createExportWrapper("setTempRet0");
 /** @type {function(...*):?} */
 var _fflush = Module["_fflush"] = createExportWrapper("fflush");
 /** @type {function(...*):?} */

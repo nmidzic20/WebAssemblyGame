@@ -50,6 +50,11 @@ extern "C" {
         ctx->score = 0;
         ctx->scroll_speed = 1.0f;
         ctx->score_sent = false;
+        ctx->background_offset = 0.0f;
+
+        for (Collidable *collidable : ctx->collidables) {
+            collidable->reset_position(ctx);
+        }
 
         EM_ASM(
             Module.gameDataStored = false;
