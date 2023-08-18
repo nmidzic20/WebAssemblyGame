@@ -5,7 +5,7 @@ let selectedAvatar = "";
 let avatarShape;
 let canvasWidth = 600;
 let canvasHeight = 600;
-
+let bullets = [];
 const highlightColor = new THREE.Color(0x00aaff);
 
 fetch("./shaders/vertexShader.glsl")
@@ -41,7 +41,7 @@ function setupShapes(container, vertexShader, fragmentShader) {
   // Background plane to display shader
   const planeMesh = new THREE.Mesh(planeGeometry, shaderMaterial);
   planeMesh.position.set(0, 0, -10);
-  scene.add(planeMesh);
+  //scene.add(planeMesh);
 
   // Add ambient light to the scene - otherwise objects from .obj file appear as black
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -276,6 +276,18 @@ function setupShapes(container, vertexShader, fragmentShader) {
   document.addEventListener("keydown", (event) => {
     switch (event.key) {
       case " ":
+        const bulletGeometry = new THREE.SphereGeometry(1, 8, 8);
+        const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffa500 });
+        const bulletMesh = new THREE.Mesh(bulletGeometry, bulletMaterial);
+
+        bulletMesh.position.set(
+          avatarPosition.x,
+          avatarPosition.y,
+          avatarPosition.z
+        );
+
+        scene.add(bulletMesh);
+        bullets.push(bulletMesh);
         break;
       case "ArrowUp":
       case "w":
@@ -304,6 +316,16 @@ function setupShapes(container, vertexShader, fragmentShader) {
 
   const render = () => {
     requestAnimationFrame(render);
+
+    for (const bullet of bullets) {
+      bullet.position.z += 0.5;
+      bullet.position.y -= 0.2;
+      if (bullet.position.z < -100) {
+        // Remove the bullet if it's far enough from the avatar
+        scene.remove(bullet);
+        bullets.splice(bullets.indexOf(bullet), 1);
+      }
+    }
 
     if (playing === true) {
       if (ship1 && ship2 && ship3) {
