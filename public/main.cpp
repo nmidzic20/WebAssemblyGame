@@ -218,6 +218,17 @@ void main_loop(void *arg) {
 
     if (Helper::is_game_over(ctx))
         EM_ASM(
+            if (document.fullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
             var usernameContainer = document.getElementById("game-over-container");
             if (usernameContainer.style.display != "flex" && Module.gameDataStored === false) {
                 usernameContainer.style.display = "flex";

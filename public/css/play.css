@@ -72,3 +72,22 @@ input {
 #restart-button:hover {
   background-color: rgb(57, 179, 220);
 }
+
+#fullscreen-game {
+  position: absolute;
+  top: 10px;
+  font-size: 20px;
+  color: white;
+}
+
+#fullscreen-threejs {
+  position: absolute;
+  top: 10px;
+  right: 70px;
+  font-size: 20px;
+  color: white;
+}
+
+.fullscreen-icon:hover {
+  cursor: pointer;
+}

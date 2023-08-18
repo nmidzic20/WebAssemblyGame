@@ -30,7 +30,6 @@ submitButton.addEventListener("click", function () {
       Module.gameDataStored = true;
       usernameInput.style.display = "none";
       submitButton.style.display = "none";
-      //usernameContainer.querySelector("p").textContent = data.message;
       const message = usernameContainer.querySelector("p");
       message.textContent = data.message;
       message.style.color = "lightblue";
@@ -84,3 +83,52 @@ Module.onGameLoaded = function (width, height) {
   startButton.style.display = "block";
   avatarContainer.style.display = "flex";
 };
+
+// Fullscreen
+const fullscreenIconGame = document.getElementById("fullscreen-game");
+const fullscreenIconThreeJS = document.getElementById("fullscreen-threejs");
+
+function makeGameFullscreen() {
+  if (
+    startContainer.style.display != "none" ||
+    gameOverContainer.style.display != "none"
+  )
+    return;
+
+  if (canvas.requestFullscreen) {
+    canvas.requestFullscreen();
+  } else if (canvas.mozRequestFullScreen) {
+    canvas.mozRequestFullScreen();
+  } else if (canvas.webkitRequestFullscreen) {
+    canvas.webkitRequestFullscreen();
+  } else if (canvas.msRequestFullscreen) {
+    canvas.msRequestFullscreen();
+  }
+}
+
+function makeThreeJSFullscreen() {
+  if (document.fullscreenElement) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  } else {
+    if (avatarContainer.requestFullscreen) {
+      avatarContainer.requestFullscreen();
+    } else if (avatarContainer.mozRequestFullScreen) {
+      avatarContainer.mozRequestFullScreen();
+    } else if (avatarContainer.webkitRequestFullscreen) {
+      avatarContainer.webkitRequestFullscreen();
+    } else if (avatarContainer.msRequestFullscreen) {
+      avatarContainer.msRequestFullscreen();
+    }
+  }
+}
+
+fullscreenIconGame.addEventListener("click", makeGameFullscreen);
+fullscreenIconThreeJS.addEventListener("click", makeThreeJSFullscreen);
