@@ -115,7 +115,7 @@ void init_collidables(context *ctx) {
         Enemy *enemy = new Enemy(
             static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH)),
             static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT)),
-            50.0f,
+            90.0f,
             50.0f,
             false,
             3

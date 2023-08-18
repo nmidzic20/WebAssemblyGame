@@ -45,7 +45,7 @@ struct context {
     SDL_Window *window;
     SDL_Renderer *renderer;
 
-    float player_size = 50.0f;
+    float player_size = 100.0f;
     Point player_position;
     int player_speed = 14;
     bool prevCollision = false;
@@ -57,7 +57,7 @@ struct context {
     int start_image;
 
     float background_offset = 0.0f;
-    float scroll_speed = 1.0f;
+    float scroll_speed = 4.0f;
 
     std::vector<Collidable *> collidables;
 

@@ -40,10 +40,10 @@ void Renderer::draw_player(const context *ctx) {
         color = { 255, 255, 0, 255 };
     }
     else if (ctx->avatar_selected == context::Avatar::MODEL_2) {
-        color = { 192, 192, 192, 255 };
+        color = { 90, 90, 90, 255 };
     }
     else if (ctx->avatar_selected == context::Avatar::MODEL_3) {
-        color = { 255, 192, 203, 255 };
+        color = { 254, 44, 84, 255 };
     }
     
     SDL_SetRenderDrawColor(ctx->renderer, color.r, color.g, color.b, color.a); 
