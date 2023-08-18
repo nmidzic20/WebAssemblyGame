@@ -1,7 +1,7 @@
 /* General */
 @font-face {
   font-family: "Ranchers-Regular";
-  src: url("../assets/Ranchers-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/Ranchers-Regular.ttf") format("truetype");
 }
 
 body {

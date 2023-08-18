@@ -244,8 +244,8 @@ int main(int argc, char *argv[]) {
     }, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT);
 
     try {
-        ctx.background_image = Helper::load_image("./assets/background.jpg", &ctx);
-        ctx.start_image = Helper::load_image("./assets/start.png", &ctx);
+        ctx.background_image = Helper::load_image("./assets/images/background.jpg", &ctx);
+        ctx.start_image = Helper::load_image("./assets/images/start.png", &ctx);
     }
     catch (const exception &e) {
         cerr << "Error: " << e.what() << endl;
@@ -254,7 +254,7 @@ int main(int argc, char *argv[]) {
 
     try {
         TTF_Init();
-        ctx.font = TTF_OpenFont("./assets/Ranchers-Regular.ttf", ctx.font_size);
+        ctx.font = TTF_OpenFont("./assets/fonts/Ranchers-Regular.ttf", ctx.font_size);
     } catch (const exception &e) {
         cerr << "Error: " << e.what() << endl;
     }

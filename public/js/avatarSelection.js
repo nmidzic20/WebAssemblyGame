@@ -1,4 +1,4 @@
-import * as THREE from "three"; //"https://cdnjs.cloudflare.com/ajax/libs/three.js/r127/three.module.js";
+import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
 let selectedAvatar = "";
@@ -55,7 +55,7 @@ function setupShapes(container, vertexShader, fragmentShader) {
   let ship1, ship2;
   const loader = new OBJLoader();
   loader.load(
-    "../assets/ship/prometheus.obj",
+    "../assets/models/ship/prometheus.obj",
     (object) => {
       const materialShip1 = new THREE.MeshToonMaterial({
         color: new THREE.Color(0xd2aa6d),

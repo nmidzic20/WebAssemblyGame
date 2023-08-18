@@ -30,7 +30,10 @@ submitButton.addEventListener("click", function () {
       Module.gameDataStored = true;
       usernameInput.style.display = "none";
       submitButton.style.display = "none";
-      usernameContainer.querySelector("p").textContent = data.message;
+      //usernameContainer.querySelector("p").textContent = data.message;
+      const message = usernameContainer.querySelector("p");
+      message.textContent = data.message;
+      message.style.color = "lightblue";
     })
     .catch((error) => {
       console.error("Error:", error);
