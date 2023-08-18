@@ -275,16 +275,26 @@ function setupShapes(container, vertexShader, fragmentShader) {
   let avatarPosition = new THREE.Vector3(0, 0, 0);
   document.addEventListener("keydown", (event) => {
     switch (event.key) {
+      case " ":
+        break;
       case "ArrowUp":
+      case "w":
+      case "W":
         avatarPosition.y += 1;
         break;
       case "ArrowDown":
+      case "s":
+      case "S":
         avatarPosition.y -= 1;
         break;
       case "ArrowLeft":
+      case "a":
+      case "A":
         avatarPosition.x -= 1;
         break;
       case "ArrowRight":
+      case "d":
+      case "D":
         avatarPosition.x += 1;
         break;
       default:
