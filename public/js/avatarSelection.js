@@ -41,7 +41,7 @@ function setupShapes(container, vertexShader, fragmentShader) {
   // Background plane to display shader
   const planeMesh = new THREE.Mesh(planeGeometry, shaderMaterial);
   planeMesh.position.set(0, 0, -10);
-  //scene.add(planeMesh);
+  scene.add(planeMesh);
 
   // Add ambient light to the scene - otherwise objects from .obj file appear as black
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -272,18 +272,22 @@ function setupShapes(container, vertexShader, fragmentShader) {
   renderer.domElement.addEventListener("mousemove", onMouseMove);
   renderer.domElement.addEventListener("mouseout", onMouseOut);
 
-  let avatarPosition = new THREE.Vector3(0, 0, 0);
+  let avatarPosition = new THREE.Vector3(0, -10, 0);
   document.addEventListener("keydown", (event) => {
     switch (event.key) {
       case " ":
-        const bulletGeometry = new THREE.SphereGeometry(1, 8, 8);
-        const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffa500 });
+        const bulletGeometry = new THREE.SphereGeometry(1.5, 8, 8);
+        const bulletMaterial = new THREE.MeshBasicMaterial({
+          color: 0xffa500,
+          depthTest: false,
+          depthWrite: false,
+        });
         const bulletMesh = new THREE.Mesh(bulletGeometry, bulletMaterial);
 
         bulletMesh.position.set(
           avatarPosition.x,
-          avatarPosition.y,
-          avatarPosition.z
+          avatarPosition.y + 4,
+          avatarPosition.z - 20
         );
 
         scene.add(bulletMesh);
@@ -316,16 +320,6 @@ function setupShapes(container, vertexShader, fragmentShader) {
 
   const render = () => {
     requestAnimationFrame(render);
-
-    for (const bullet of bullets) {
-      bullet.position.z += 0.5;
-      bullet.position.y -= 0.2;
-      if (bullet.position.z < -100) {
-        // Remove the bullet if it's far enough from the avatar
-        scene.remove(bullet);
-        bullets.splice(bullets.indexOf(bullet), 1);
-      }
-    }
 
     if (playing === true) {
       if (ship1 && ship2 && ship3) {
@@ -375,6 +369,21 @@ function setupShapes(container, vertexShader, fragmentShader) {
       }
     } else {
       if (ship1 && ship2 && ship3) {
+        if (ship1.position.x != 0) {
+          if (avatarShape) scene.remove(avatarShape);
+
+          ship1.position.set(0, -15, 0);
+          ship1.rotation.set(0, Math.PI / 2, 0);
+          ship1.scale.set(4, 4, 4);
+
+          ship2.position.set(0, 15, 0);
+          ship2.rotation.set(0, Math.PI / 2, 0);
+          ship2.scale.set(4, 4, 4);
+
+          ship3.position.set(0, 0, 0);
+          ship3.rotation.set(0, Math.PI / 2, 0);
+          ship3.scale.set(4, 4, 4);
+        }
         ship1.rotation.y += 0.01;
         ship2.rotation.y += 0.01;
         ship3.rotation.y += 0.01;
@@ -383,6 +392,16 @@ function setupShapes(container, vertexShader, fragmentShader) {
 
     // Update neccesary shader uniforms (time)
     shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
+
+    for (const bullet of bullets) {
+      bullet.position.z -= 4;
+      bullet.position.y += 0.3;
+      if (bullet.position.z < -100) {
+        // Remove the bullet if it's far enough from the avatar
+        scene.remove(bullet);
+        bullets.splice(bullets.indexOf(bullet), 1);
+      }
+    }
 
     renderer.render(scene, camera);
   };

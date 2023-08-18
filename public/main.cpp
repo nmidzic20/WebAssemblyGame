@@ -46,9 +46,9 @@ extern "C" {
 
     EMSCRIPTEN_KEEPALIVE
     void restart_game(context *ctx) {
-        ctx->lives = 10;
+        ctx->lives = ctx->PLAYER_LIVES;
         ctx->score = 0;
-        ctx->scroll_speed = 1.0f;
+        ctx->scroll_speed = ctx->SCROLL_SPEED;
         ctx->score_sent = false;
         ctx->background_offset = 0.0f;
 
@@ -61,6 +61,7 @@ extern "C" {
             document.getElementById("username-container").querySelector("p").textContent = "";
             document.getElementById("username-input").style.display = "block";
             document.getElementById("submit-button").style.display = "block";
+            Module.onGameStarted();
         );
     }
 
@@ -133,7 +134,7 @@ void init_projectiles(context *ctx) {
             20.0f,
             5.0f,
             false,
-            5.0f
+            ctx->scroll_speed * 4.0f
         );
         ctx->collidables.push_back(projectile);
 
@@ -184,8 +185,6 @@ void render_frame(context *ctx) {
 void main_loop(void *arg) {
     context *ctx = static_cast<context*>(arg);
 
-    //SDL_SetRenderDrawColor(ctx->renderer, 160, 0, 200, 255);
-    //SDL_RenderClear(ctx->renderer);
     SDL_Rect dest_rect;
     dest_rect.x = 0;
     dest_rect.y = 0;
@@ -233,6 +232,7 @@ void main_loop(void *arg) {
             if (usernameContainer.style.display != "flex" && Module.gameDataStored === false) {
                 usernameContainer.style.display = "flex";
             }
+            Module.onGameEnded();
         );
     else
         EM_ASM(

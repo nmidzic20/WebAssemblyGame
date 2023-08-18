@@ -32,7 +32,7 @@ submitButton.addEventListener("click", function () {
       submitButton.style.display = "none";
       const message = usernameContainer.querySelector("p");
       message.textContent = data.message;
-      message.style.color = "lightblue";
+      message.style.color = "orange";
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -82,6 +82,18 @@ Module.onGameLoaded = function (width, height) {
 
   startButton.style.display = "block";
   avatarContainer.style.display = "flex";
+};
+
+Module.onGameStarted = function () {
+  if (playing === false) {
+    playing = true;
+  }
+};
+
+Module.onGameEnded = function () {
+  if (playing === true) {
+    playing = false;
+  }
 };
 
 // Fullscreen

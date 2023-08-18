@@ -18,6 +18,8 @@ struct context {
     const float WINDOW_HEIGHT = 600; 
     const int NUMBER_COLLIDABLES = 5;
     const float PROJECTILE_COOLDOWN_TIME = 0.2f;
+    const float SCROLL_SPEED = 4.0f;
+    const int PLAYER_LIVES = 10;
 
     struct Point {
         float x, y;
@@ -57,12 +59,12 @@ struct context {
     int start_image;
 
     float background_offset = 0.0f;
-    float scroll_speed = 4.0f;
+    float scroll_speed = SCROLL_SPEED;
 
     std::vector<Collidable *> collidables;
 
     int score = 0;
-    int lives = 10;
+    int lives = PLAYER_LIVES;
     int font_size = 32;
     TTF_Font *font;
 
