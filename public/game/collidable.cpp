@@ -25,10 +25,17 @@ void Collidable::update_position(float scroll_speed) {
 }
 
 void Collidable::draw(const context *ctx) {
-    SDL_SetRenderDrawColor(ctx->renderer, 255, 0, 128, 255);
-    SDL_RenderDrawLine(ctx->renderer, x, y, x + width / 2, y - height);
-    SDL_RenderDrawLine(ctx->renderer, x + width / 2, y - height, x + width, y);
-    SDL_RenderDrawLine(ctx->renderer, x, y, x + width, y);
+    SDL_Texture *pointTexture = IMG_LoadTexture(ctx->renderer, "../assets/images/point.png");
+
+    if (pointTexture) {
+        SDL_Rect destRect = {
+            static_cast<int>(x), static_cast<int>(y - height),
+            static_cast<int>(width), static_cast<int>(height)
+        };
+
+        SDL_RenderCopy(ctx->renderer, pointTexture, nullptr, &destRect);
+        SDL_DestroyTexture(pointTexture);
+    }
 }
 
 void Collidable::handle_collision(context *ctx) {

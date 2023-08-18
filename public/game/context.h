@@ -35,8 +35,9 @@ struct context {
     };
 
     enum Avatar {
-        CUBE,
-        TRIANGLE
+        MODEL_1,
+        MODEL_2,
+        MODEL_3
     };
 
     GameState game_state;

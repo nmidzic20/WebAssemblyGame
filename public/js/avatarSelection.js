@@ -52,25 +52,27 @@ function setupShapes(container, vertexShader, fragmentShader) {
   directionalLight.position.set(1, 1, 1).normalize();
   scene.add(directionalLight);
 
-  let ship1, ship2;
+  let ship1, ship2, ship3;
+
   const loader = new OBJLoader();
   loader.load(
     "../assets/models/ship/prometheus.obj",
     (object) => {
       const materialShip1 = new THREE.MeshToonMaterial({
-        color: new THREE.Color(0xd2aa6d),
+        color: new THREE.Color(0xffff00), //(0xd2aa6d),
       });
-      /*new THREE.MeshNormalMaterial({
-        side: THREE.DoubleSide,
-      });*/
       const materialShip2 = new THREE.MeshPhongMaterial({
         color: 0x999999,
         specular: 0xffffff,
         shininess: 100,
       });
+      const materialShip3 = new THREE.MeshNormalMaterial({
+        side: THREE.DoubleSide,
+      });
 
       ship1 = object.clone();
       ship2 = object.clone();
+      ship3 = object.clone();
 
       ship1.traverse((child) => {
         if (child instanceof THREE.Mesh) {
@@ -84,9 +86,16 @@ function setupShapes(container, vertexShader, fragmentShader) {
           child.userData.shipName = "ship2";
         }
       });
+      ship3.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.material = materialShip3;
+          child.userData.shipName = "ship3";
+        }
+      });
 
       originalMaterialShip1 = materialShip1;
       originalMaterialShip2 = materialShip2;
+      originalMaterialShip3 = materialShip3;
 
       ship1.position.set(0, -15, 0);
       ship1.rotation.set(0, Math.PI / 2, 0);
@@ -96,11 +105,16 @@ function setupShapes(container, vertexShader, fragmentShader) {
       ship2.rotation.set(0, Math.PI / 2, 0);
       ship2.scale.set(4, 4, 4);
 
+      ship3.position.set(0, 0, 0);
+      ship3.rotation.set(0, Math.PI / 2, 0);
+      ship3.scale.set(4, 4, 4);
+
       scene.add(ship1);
       scene.add(ship2);
+      scene.add(ship3);
     },
     (xhr) => {
-      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      //console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
     },
     (error) => {
       console.error("An error occurred", error);
@@ -115,8 +129,7 @@ function setupShapes(container, vertexShader, fragmentShader) {
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
 
-  let originalMaterialShip1;
-  let originalMaterialShip2;
+  let originalMaterialShip1, originalMaterialShip2, originalMaterialShip3;
 
   const onMouseMove = (event) => {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -125,7 +138,7 @@ function setupShapes(container, vertexShader, fragmentShader) {
 
     raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObjects([ship1, ship2]);
+    const intersects = raycaster.intersectObjects([ship1, ship2, ship3]);
 
     if (intersects.length > 0) {
       const hoveredObject = intersects[0].object;
@@ -153,9 +166,20 @@ function setupShapes(container, vertexShader, fragmentShader) {
             child.userData.shipName = "ship2";
           }
         });
+      } else if (shipName === "ship3") {
+        ship3.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.material = new THREE.MeshBasicMaterial({
+              color: highlightColor,
+              transparent: true,
+              opacity: 0.5,
+            });
+            child.userData.shipName = "ship3";
+          }
+        });
       }
     } else {
-      if (ship1 && ship2) {
+      if (ship1 && ship2 && ship3) {
         ship1.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.material = originalMaterialShip1;
@@ -166,12 +190,17 @@ function setupShapes(container, vertexShader, fragmentShader) {
             child.material = originalMaterialShip2;
           }
         });
+        ship3.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.material = originalMaterialShip3;
+          }
+        });
       }
     }
   };
 
   const onMouseOut = () => {
-    if (ship1 && ship2) {
+    if (ship1 && ship2 && ship3) {
       ship1.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.material = originalMaterialShip1;
@@ -180,6 +209,11 @@ function setupShapes(container, vertexShader, fragmentShader) {
       ship2.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.material = originalMaterialShip2;
+        }
+      });
+      ship3.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.material = originalMaterialShip3;
         }
       });
     }
@@ -192,7 +226,7 @@ function setupShapes(container, vertexShader, fragmentShader) {
 
     raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObjects([ship1, ship2]);
+    const intersects = raycaster.intersectObjects([ship1, ship2, ship3]);
 
     if (intersects.length > 0) {
       const clickedObject = intersects[0].object;
@@ -219,6 +253,16 @@ function setupShapes(container, vertexShader, fragmentShader) {
           "void",
           ["number", "number"],
           [Module.context, 1]
+        );
+      } else if (shipName === "ship3") {
+        console.log("clicked ship3");
+
+        selectedAvatar = "ship3";
+        Module.ccall(
+          "set_avatar",
+          "void",
+          ["number", "number"],
+          [Module.context, 2]
         );
       }
     }
@@ -252,7 +296,7 @@ function setupShapes(container, vertexShader, fragmentShader) {
     requestAnimationFrame(render);
 
     if (playing === true) {
-      if (ship1 && ship2) {
+      if (ship1 && ship2 && ship3) {
         if (ship1.position.x != -20) {
           ship1.rotation.set(0, 0, 0);
           ship1.position.set(-20, 22, 0);
@@ -269,9 +313,22 @@ function setupShapes(container, vertexShader, fragmentShader) {
             "ship2";
           console.log("SHIP2");
           console.log(ship2.getObjectByName("Plane.100_Plane.102"));
+
+          ship3.rotation.set(0, 0, 0);
+          ship3.position.set(0, 22, 0);
+          ship3.scale.set(1.5, 1.5, 1.5);
+          ship3.getObjectByName("Plane.100_Plane.102").userData.shipName =
+            "ship3";
+          console.log("SHIP3");
+          console.log(ship3.getObjectByName("Plane.100_Plane.102"));
         }
 
-        const lastSelectedShape = selectedAvatar === "ship1" ? ship1 : ship2;
+        const lastSelectedShape =
+          selectedAvatar === "ship1"
+            ? ship1
+            : selectedAvatar === "ship2"
+            ? ship2
+            : ship3;
 
         if (avatarShape != undefined) scene.remove(avatarShape);
         avatarShape = lastSelectedShape.clone();
@@ -285,9 +342,10 @@ function setupShapes(container, vertexShader, fragmentShader) {
         avatarShape.position.add(avatarPosition);
       }
     } else {
-      if (ship1 && ship2) {
+      if (ship1 && ship2 && ship3) {
         ship1.rotation.y += 0.01;
         ship2.rotation.y += 0.01;
+        ship3.rotation.y += 0.01;
       }
     }
 

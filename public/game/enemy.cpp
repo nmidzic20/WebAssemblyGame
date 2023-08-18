@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "enemy.h"
 #include "context.h"
 
@@ -6,10 +7,18 @@ Enemy::Enemy(float _x, float _y, float _width, float _height, float _collided, i
     : Collidable(_x, _y, _width, _height, _collided), lives(_lives) {}
 
 void Enemy::draw(const context *ctx) {
-    SDL_SetRenderDrawColor(ctx->renderer, 0, 255, 0, 255);
-    SDL_RenderDrawLine(ctx->renderer, x, y, x + width / 2, y - height);
-    SDL_RenderDrawLine(ctx->renderer, x + width / 2, y - height, x + width, y);
-    SDL_RenderDrawLine(ctx->renderer, x, y, x + width, y);
+   
+    SDL_Texture *enemyTexture = IMG_LoadTexture(ctx->renderer, "../assets/images/enemy.png");
+
+    if (enemyTexture) {
+        SDL_Rect destRect = {
+            static_cast<int>(x), static_cast<int>(y - height),
+            static_cast<int>(width), static_cast<int>(height)
+        };
+
+        SDL_RenderCopy(ctx->renderer, enemyTexture, nullptr, &destRect);
+        SDL_DestroyTexture(enemyTexture);
+    }
 }
 
 void Enemy::handle_collision(context *ctx) {

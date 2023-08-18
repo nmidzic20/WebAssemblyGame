@@ -34,23 +34,34 @@ void Renderer::draw_player(const context *ctx) {
 
     if (Helper::is_game_over(ctx)) return;
 
-    SDL_Rect rect;
-    rect.w = ctx->player_size;
-    rect.h = ctx->player_size;
-    rect.x = ctx->player_position.x - ctx->player_size / 2;
-    rect.y = ctx->player_position.y - ctx->player_size / 2;
-
     SDL_Color color = { 255, 255, 255, 255 };
 
-    if (ctx->avatar_selected == context::Avatar::CUBE) {
-        color = { 255, 0, 0, 255 };
+    if (ctx->avatar_selected == context::Avatar::MODEL_1) {
+        color = { 255, 255, 0, 255 };
     }
-    else if (ctx->avatar_selected == context::Avatar::TRIANGLE) {
-        color = { 0, 255, 0, 255 };
+    else if (ctx->avatar_selected == context::Avatar::MODEL_2) {
+        color = { 192, 192, 192, 255 };
+    }
+    else if (ctx->avatar_selected == context::Avatar::MODEL_3) {
+        color = { 255, 192, 203, 255 };
     }
     
     SDL_SetRenderDrawColor(ctx->renderer, color.r, color.g, color.b, color.a); 
-    SDL_RenderFillRect(ctx->renderer, &rect);
+    
+    SDL_Texture *rocketTexture = IMG_LoadTexture(ctx->renderer, "../assets/images/player.png");
+    if (rocketTexture) {
+        SDL_SetTextureColorMod(rocketTexture, color.r, color.g, color.b);
+
+        SDL_Rect destRect;
+        destRect.w = ctx->player_size;
+        destRect.h = ctx->player_size;
+        destRect.x = ctx->player_position.x - ctx->player_size / 2;
+        destRect.y = ctx->player_position.y - ctx->player_size / 2;
+
+        SDL_RenderCopy(ctx->renderer, rocketTexture, nullptr, &destRect);
+        SDL_SetTextureColorMod(rocketTexture, 255, 255, 255);
+        SDL_DestroyTexture(rocketTexture);
+    }
 }
 
 void Renderer::draw_collidables(context *ctx) {
