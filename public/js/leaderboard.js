@@ -1,7 +1,7 @@
 const table = document.getElementsByTagName("table")[0];
 const pagination = document.getElementById("pagination");
 const selectElement = document.getElementById("itemsPerPageSelect");
-let selectedItemsPerPage = 10;
+let selectedItemsPerPage = 5;
 let currentPage = 1;
 let currentPageButton;
 let numRows;
