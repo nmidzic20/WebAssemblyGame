@@ -13,9 +13,11 @@ let hightlightMaterial = new THREE.MeshBasicMaterial({
 let models = [];
 let materials = [];
 let ship1, ship2, ship3;
-let selectedAvatar = "";
+let selectedAvatar;
 let avatarShape;
 let avatarPosition = new THREE.Vector3(0, -10, 0);
+
+const setModelName = (index) => "ship" + (index + 1);
 
 let scene;
 let camera;
@@ -160,7 +162,7 @@ function setModelsSelection() {
     return {
       model: model,
       positionX: startX + index * 10,
-      modelName: "ship" + (index + 1),
+      modelName: setModelName(index),
     };
   });
 
@@ -175,22 +177,21 @@ function setModelsSelection() {
 }
 
 function setAvatarModel() {
-  const lastSelectedShape =
-    selectedAvatar === "ship1"
-      ? ship1
-      : selectedAvatar === "ship2"
-      ? ship2
-      : ship3;
+  const lastSelectedShape = models.find(
+    (model) => model.name === selectedAvatar
+  );
 
   if (avatarShape) scene.remove(avatarShape);
-  avatarShape = lastSelectedShape.clone();
+  if (lastSelectedShape) avatarShape = lastSelectedShape.clone();
 
-  avatarShape.scale.set(4, 4, 4);
-  avatarShape.position.set(0, 0, 0);
-  avatarShape.rotation.y += 0.01;
+  if (avatarShape) {
+    avatarShape.scale.set(4, 4, 4);
+    avatarShape.position.set(0, 0, 0);
+    avatarShape.rotation.y += 0.01;
 
-  scene.add(avatarShape);
-  avatarShape.position.add(avatarPosition);
+    scene.add(avatarShape);
+    avatarShape.position.add(avatarPosition);
+  }
 }
 
 function createBullet() {
@@ -254,8 +255,9 @@ function createShipModels(object) {
   models.push(ship3);
 
   models.forEach((model, index) => {
-    model.name = "ship" + (index + 1);
+    model.name = setModelName(index);
     applyMaterialToModel(model, materials[index], index);
+    setModelNameToUnreachedChildren(model, index);
   });
 
   resetModelsPosition();
@@ -265,12 +267,18 @@ function createShipModels(object) {
   models.forEach((model) => scene.add(model));
 }
 
+function setModelNameToUnreachedChildren(model, index) {
+  model.getObjectByName("Plane.100_Plane.102").userData.modelName =
+    setModelName(index);
+  model.getObjectByName("Plane.031").userData.modelName = setModelName(index);
+  model.getObjectByName("Sphere.003").userData.modelName = setModelName(index);
+}
+
 function applyMaterialToModel(model, material, index) {
   model.traverse((child) => {
     if (child instanceof THREE.Mesh) {
       child.material = material;
-      if (!child.userData.modelName)
-        child.userData.modelName = "ship" + (index + 1);
+      if (index != null) child.userData.modelName = setModelName(index);
     }
   });
 }
@@ -324,15 +332,20 @@ function onMouseClick(event) {
 
     const modelName = clickedObject.userData.modelName;
 
-    changeAvatar(modelName);
+    if (!modelName) {
+      console.log("Undefined click");
+      console.log(clickedObject);
+    }
+
+    if (modelName) changeAvatar(modelName);
   }
 }
 
 function changeAvatar(modelName) {
   selectedAvatar = modelName;
-  let modelIndex = models.indexOf(
-    models.find((model) => model.name === modelName)
-  );
+  let model = models.find((model) => model.name === modelName);
+  let modelIndex = models.indexOf(model);
+
   Module.ccall(
     "set_avatar",
     "void",
