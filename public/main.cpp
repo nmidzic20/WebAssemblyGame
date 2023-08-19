@@ -19,7 +19,6 @@
 
 using namespace std;
 
-int load_image(string image_path, context *ctx);
 void init_collidables(context *ctx);
 void init_projectiles(context *ctx);
 void update_collidables(context *ctx);
@@ -247,7 +246,7 @@ int main(int argc, char *argv[]) {
     context ctx;
 
     SDL_Init(SDL_INIT_VIDEO);
-    ctx.window = SDL_CreateWindow("Endless Runner", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT, 0);
+    ctx.window = SDL_CreateWindow("Space Runner", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT, 0);
     ctx.renderer = SDL_CreateRenderer(ctx.window, -1, SDL_RENDERER_ACCELERATED);
 
     EM_ASM({
@@ -273,7 +272,6 @@ int main(int argc, char *argv[]) {
     init_collidables(&ctx);
 
     bool running = true;
-    SDL_Event event;
 
     EM_ASM(
         Module.handleEvent = function(event) {
