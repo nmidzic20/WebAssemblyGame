@@ -68,7 +68,6 @@ extern "C" {
     EMSCRIPTEN_KEEPALIVE
     void set_avatar(context *ctx, int avatar_index) {
         ctx->avatar_selected = avatar_index;
-        cout << "Avatar " << ctx->avatar_selected << endl;
     }
 
     EMSCRIPTEN_KEEPALIVE
