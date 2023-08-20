@@ -162,7 +162,6 @@ void update_background_offset(context *ctx) {
 void handle_collisions(context *ctx) {
     
     for (Collidable *collidable : ctx->collidables) {
-        collidable->update_position(ctx->scroll_speed);
         collidable->handle_collision(ctx);
     }
     Helper::reset_collided_flag(ctx);
@@ -181,14 +180,46 @@ void render_frame(context *ctx) {
     }
 }
 
+void monitor_game_over_status(context *ctx) {
+
+    if (Helper::is_game_over(ctx)) {
+        if (!ctx->score_sent) {
+            ctx->score_sent = !ctx->score_sent;
+            EM_ASM_({
+                Module.playerScore = $0;
+            }, ctx->score);
+        }
+
+        EM_ASM({
+            let usernameContainer = document.getElementById("game-over-container");
+            if (document.fullscreenElement) {
+                const exitFullscreen = document.exitFullscreen || document.mozCancelFullScreen || document.webkitExitFullscreen || document.msExitFullscreen;
+                if (exitFullscreen) {
+                    exitFullscreen.call(document);
+                }
+            }
+            if (Module.gameDataStored === false) {
+                if (usernameContainer.style.display != "flex") {
+                    usernameContainer.style.display = "flex";
+                }
+                Module.onGameEnded();
+            }
+        });
+    } else {
+        EM_ASM(
+            let usernameContainer = document.getElementById("game-over-container");
+            if (usernameContainer.style.display != "none") {
+                usernameContainer.style.display = "none";
+            }
+        );
+    }
+
+}
+
 void main_loop(void *arg) {
     context *ctx = static_cast<context*>(arg);
 
-    SDL_Rect dest_rect;
-    dest_rect.x = 0;
-    dest_rect.y = 0;
-    dest_rect.w = ctx->WINDOW_WIDTH;
-    dest_rect.h = ctx->WINDOW_HEIGHT;
+    SDL_Rect dest_rect = {0, 0, static_cast<int>(ctx->WINDOW_WIDTH), static_cast<int>(ctx->WINDOW_HEIGHT)};
 
     SDL_RenderCopy(ctx->renderer, ctx->images[ctx->start_image], nullptr, &dest_rect);
 
@@ -207,39 +238,7 @@ void main_loop(void *arg) {
     update_background_offset(ctx);
     update_collidables(ctx);
 
-    if (Helper::is_game_over(ctx) && !ctx->score_sent) {
-        ctx->score_sent = !ctx->score_sent;
-        EM_ASM_({
-            Module.playerScore = $0;
-        }, ctx->score);
-    }
-
-    if (Helper::is_game_over(ctx))
-        EM_ASM(
-            if (document.fullscreenElement) {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.mozCancelFullScreen) {
-                    document.mozCancelFullScreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                }
-            }
-            var usernameContainer = document.getElementById("game-over-container");
-            if (usernameContainer.style.display != "flex" && Module.gameDataStored === false) {
-                usernameContainer.style.display = "flex";
-            }
-            Module.onGameEnded();
-        );
-    else
-        EM_ASM(
-            var usernameContainer = document.getElementById("game-over-container");
-            if (usernameContainer.style.display != "none") {
-                usernameContainer.style.display = "none";
-            }
-        );
+    monitor_game_over_status(ctx);
 }
 
 int main(int argc, char *argv[]) {

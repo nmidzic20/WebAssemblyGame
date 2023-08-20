@@ -100,8 +100,37 @@ Module.onGameEnded = function () {
 const fullscreenIconGame = document.getElementById("fullscreen-game");
 const fullscreenIconThreeJS = document.getElementById("fullscreen-threejs");
 
+function toggleFullscreen(element) {
+  if (document.fullscreenElement) {
+    const exitFullscreen =
+      document.exitFullscreen ||
+      document.mozCancelFullScreen ||
+      document.webkitExitFullscreen ||
+      document.msExitFullscreen;
+    if (exitFullscreen) {
+      exitFullscreen.call(document);
+    }
+  } else {
+    const requestFullscreen =
+      element.requestFullscreen ||
+      element.mozRequestFullScreen ||
+      element.webkitRequestFullscreen ||
+      element.msRequestFullscreen;
+    if (requestFullscreen) {
+      requestFullscreen.call(element);
+    }
+  }
+}
+
 function makeGameFullscreen() {
   if (
+    startContainer.style.display !== "none" ||
+    gameOverContainer.style.display !== "none"
+  )
+    return;
+
+  toggleFullscreen(canvas);
+  /*if (
     startContainer.style.display != "none" ||
     gameOverContainer.style.display != "none"
   )
@@ -115,11 +144,12 @@ function makeGameFullscreen() {
     canvas.webkitRequestFullscreen();
   } else if (canvas.msRequestFullscreen) {
     canvas.msRequestFullscreen();
-  }
+  }*/
 }
 
 function makeThreeJSFullscreen() {
-  if (document.fullscreenElement) {
+  toggleFullscreen(avatarContainer);
+  /*if (document.fullscreenElement) {
     if (document.exitFullscreen) {
       document.exitFullscreen();
     } else if (document.mozCancelFullScreen) {
@@ -139,7 +169,7 @@ function makeThreeJSFullscreen() {
     } else if (avatarContainer.msRequestFullscreen) {
       avatarContainer.msRequestFullscreen();
     }
-  }
+  }*/
 }
 
 fullscreenIconGame.addEventListener("click", makeGameFullscreen);
