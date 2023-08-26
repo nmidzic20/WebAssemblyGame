@@ -46,22 +46,17 @@ app.get("/api/players", async (req, res) => {
   res.send(players);
 });
 
-app.post("/api/players", (req, res) => {
+app.post("/api/players", async (req, res) => {
   const { username, score } = req.body;
 
-  db.run(
-    "INSERT INTO players (username, score) VALUES (?, ?)",
-    [username, score],
-    function (err) {
-      if (err) {
-        console.error("Error saving player:", err);
-        res.status(500).json({ message: "Error saving player" });
-      } else {
-        console.log(`Player ${username} saved`);
-        res.json({ message: `Player ${username} saved` });
-      }
-    }
-  );
+  try {
+    await savePlayer(username, score);
+    console.log(`Player ${username} saved`);
+    res.json({ message: `Player ${username} saved` });
+  } catch (error) {
+    console.error("Error saving player:", error);
+    res.status(500).json({ message: "Error saving player" });
+  }
 });
 
 app.listen(port, () => {
@@ -111,6 +106,22 @@ async function getPlayersPaginated(page, itemsPerPage) {
           reject(err);
         } else {
           resolve(rows);
+        }
+      }
+    );
+  });
+}
+
+async function savePlayer(username, score) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      "INSERT INTO players (username, score) VALUES (?, ?)",
+      [username, score],
+      function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
         }
       }
     );

@@ -130,46 +130,10 @@ function makeGameFullscreen() {
     return;
 
   toggleFullscreen(canvas);
-  /*if (
-    startContainer.style.display != "none" ||
-    gameOverContainer.style.display != "none"
-  )
-    return;
-
-  if (canvas.requestFullscreen) {
-    canvas.requestFullscreen();
-  } else if (canvas.mozRequestFullScreen) {
-    canvas.mozRequestFullScreen();
-  } else if (canvas.webkitRequestFullscreen) {
-    canvas.webkitRequestFullscreen();
-  } else if (canvas.msRequestFullscreen) {
-    canvas.msRequestFullscreen();
-  }*/
 }
 
 function makeThreeJSFullscreen() {
   toggleFullscreen(avatarContainer);
-  /*if (document.fullscreenElement) {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
-  } else {
-    if (avatarContainer.requestFullscreen) {
-      avatarContainer.requestFullscreen();
-    } else if (avatarContainer.mozRequestFullScreen) {
-      avatarContainer.mozRequestFullScreen();
-    } else if (avatarContainer.webkitRequestFullscreen) {
-      avatarContainer.webkitRequestFullscreen();
-    } else if (avatarContainer.msRequestFullscreen) {
-      avatarContainer.msRequestFullscreen();
-    }
-  }*/
 }
 
 fullscreenIconGame.addEventListener("click", makeGameFullscreen);

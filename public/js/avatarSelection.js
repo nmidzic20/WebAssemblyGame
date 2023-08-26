@@ -17,8 +17,6 @@ let selectedAvatar;
 let avatarShape;
 let avatarPosition = new THREE.Vector3(0, -10, 0);
 
-const setModelName = (index) => "ship" + (index + 1);
-
 let scene;
 let camera;
 let renderer;
@@ -26,6 +24,9 @@ let raycaster;
 let mouse;
 
 let shaderMaterial;
+
+const setModelName = (index) => "ship" + (index + 1);
+const loadShader = async (shaderPath) => (await fetch(shaderPath)).text();
 
 Promise.all([
   loadShader("./shaders/vertexShader.glsl"),
@@ -35,10 +36,6 @@ Promise.all([
     renderScene(avatarContainer, vertexShaderCode, fragmentShaderCode);
   })
   .catch((error) => console.error("Error loading shader files:", error));
-
-async function loadShader(shaderPath) {
-  return fetch(shaderPath).then((response) => response.text());
-}
 
 function renderScene(container, vertexShader, fragmentShader) {
   initScene();

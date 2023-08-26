@@ -33,15 +33,6 @@ extern "C" {
     void start_game(context *ctx) {
         gameStarted = true;
     }
-    /*Cannot this way due to asynchronous nature of doing main_loop not registering this change in ctx->game_state
-    EMSCRIPTEN_KEEPALIVE
-    void startGame(context *ctx) {
-        cout << "Called startgame" << endl;
-        if (ctx->game_state != context::GameState::GAMEPLAY)
-            ctx->game_state = context::GameState::GAMEPLAY;
-        EM_ASM(Module.startGame = false;);
-        cout << "Game state is " << (ctx->game_state) << endl;
-    }*/
 
     EMSCRIPTEN_KEEPALIVE
     void restart_game(context *ctx) {
