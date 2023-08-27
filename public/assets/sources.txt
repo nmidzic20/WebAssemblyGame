@@ -1,0 +1,12 @@
+Ship models:
+
+https://free3d.com/3d-model/uss-prometheus-nx-59650-16091.html
+
+Image assets: 
+
+https://wallpaperaccess.com/3d-space
+https://pixabay.com/vectors/firework-star-red-explosion-305244/
+https://pixabay.com/vectors/rocket-vector-space-launch-2442125/
+https://pixabay.com/vectors/rocket-flying-exhaust-flames-309406/
+
+vertexShader.glsl and fragmentShader.glsl adapted from Shadertoy: https://www.shadertoy.com/view/4d3SWM
