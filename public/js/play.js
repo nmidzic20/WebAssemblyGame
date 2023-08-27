@@ -32,7 +32,7 @@ submitButton.addEventListener("click", function () {
       submitButton.style.display = "none";
       const message = usernameContainer.querySelector("p");
       message.textContent = data.message;
-      message.style.color = "orange";
+      message.style.color = "white";
     })
     .catch((error) => {
       console.error("Error:", error);
