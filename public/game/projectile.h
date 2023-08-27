@@ -9,8 +9,8 @@ class Projectile : public Collidable {
 
         Projectile(float _x, float _y, float _width, float _height, float _collided, int _speed);
         
-        virtual void draw(const context *ctx) override;
-        virtual void handle_collision(context *ctx) override;
+        virtual void draw(const Context *ctx) override;
+        virtual void handle_collision(Context *ctx) override;
 };
 
 #endif

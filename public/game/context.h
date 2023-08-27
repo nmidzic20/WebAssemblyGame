@@ -13,7 +13,7 @@ namespace Helper {
     bool check_collision(const SDL_Rect &rect1, const SDL_Rect &rect2);
 }
 
-struct context {
+struct Context {
     const float WINDOW_WIDTH = 700; 
     const float WINDOW_HEIGHT = 600; 
     const int NUMBER_COLLIDABLES = 5;
@@ -72,9 +72,9 @@ struct context {
 
     int avatar_selected;
 
-    context() : player_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 }, score_sent(false), game_state(GameState::START) {}
+    Context() : player_position{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 }, score_sent(false), game_state(GameState::START) {}
 
-    ~context() {
+    ~Context() {
         for (Collidable* collidable : collidables) {
             delete collidable;
         }

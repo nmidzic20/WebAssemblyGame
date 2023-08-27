@@ -1,7 +1,7 @@
 #ifndef COLLIDABLE_H
 #define COLLIDABLE_H
 
-class context;
+class Context;
 
 class Collidable {
     public:
@@ -12,10 +12,10 @@ class Collidable {
 
         Collidable(float _x, float _y, float _width, float _height, bool _collided);
 
-        void reset_position(const context *ctx);
+        void reset_position(const Context *ctx);
         void update_position(float scroll_speed);
-        virtual void draw(const context *ctx);
-        virtual void handle_collision(context *ctx);
+        virtual void draw(const Context *ctx);
+        virtual void handle_collision(Context *ctx);
 };
 
 #endif

@@ -6,7 +6,7 @@
 Enemy::Enemy(float _x, float _y, float _width, float _height, float _collided, int _lives)
     : Collidable(_x, _y, _width, _height, _collided), lives(_lives) {}
 
-void Enemy::draw(const context *ctx) {
+void Enemy::draw(const Context *ctx) {
    
     SDL_Texture *enemyTexture = IMG_LoadTexture(ctx->renderer, "../assets/images/enemy.png");
 
@@ -21,7 +21,7 @@ void Enemy::draw(const context *ctx) {
     }
 }
 
-void Enemy::handle_collision(context *ctx) {
+void Enemy::handle_collision(Context *ctx) {
     SDL_Rect cubeRect = {
         static_cast<int>(ctx->player_position.x - ctx->player_size / 2),
         static_cast<int>(ctx->player_position.y - ctx->player_size / 2),

@@ -5,7 +5,7 @@
 Projectile::Projectile(float _x, float _y, float _width, float _height, float _collided, int _speed)
     : Collidable(_x, _y, _width, _height, _collided), speed(_speed) {}
 
-void Projectile::draw(const context *ctx) {
+void Projectile::draw(const Context *ctx) {
     x += speed;
 
     SDL_SetRenderDrawColor(ctx->renderer, 255, 165, 0, 255);
@@ -13,7 +13,7 @@ void Projectile::draw(const context *ctx) {
     SDL_RenderFillRect(ctx->renderer, &projectileRect);
 }
 
-void Projectile::handle_collision(context *ctx) {
+void Projectile::handle_collision(Context *ctx) {
     SDL_Rect projectileRect = {static_cast<int>(x), static_cast<int>(y), static_cast<int>(width), static_cast<int>(height)};
 
     for (Collidable *collidable : ctx->collidables) {

@@ -19,23 +19,23 @@
 
 using namespace std;
 
-void init_collidables(context *ctx);
-void init_projectiles(context *ctx);
-void update_collidables(context *ctx);
-void update_background_offset(context *ctx);
-void handle_collisions(context *ctx);
-void render_frame(context *ctx);
+void init_collidables(Context *ctx);
+void init_projectiles(Context *ctx);
+void update_collidables(Context *ctx);
+void update_background_offset(Context *ctx);
+void handle_collisions(Context *ctx);
+void render_frame(Context *ctx);
 
 extern "C" {
     bool gameStarted = false;
 
     EMSCRIPTEN_KEEPALIVE
-    void start_game(context *ctx) {
+    void start_game(Context *ctx) {
         gameStarted = true;
     }
 
     EMSCRIPTEN_KEEPALIVE
-    void restart_game(context *ctx) {
+    void restart_game(Context *ctx) {
         ctx->lives = ctx->PLAYER_LIVES;
         ctx->score = 0;
         ctx->scroll_speed = ctx->SCROLL_SPEED;
@@ -56,13 +56,12 @@ extern "C" {
     }
 
     EMSCRIPTEN_KEEPALIVE
-    void set_avatar(context *ctx, int avatar_index) {
+    void set_avatar(Context *ctx, int avatar_index) {
         ctx->avatar_selected = avatar_index;
-        cout << "Avatar " << avatar_index << endl;
     }
 
     EMSCRIPTEN_KEEPALIVE
-    void handle_input(int key, int state, context *ctx) {
+    void handle_input(int key, int state, Context *ctx) {
         
         switch (key) {
             case ' ':
@@ -92,7 +91,7 @@ extern "C" {
     }
 }
 
-void init_collidables(context *ctx) {
+void init_collidables(Context *ctx) {
     for (int i = 0; i < ctx->NUMBER_COLLIDABLES; i++) {
         Collidable *coin = new Collidable(
             static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH)),
@@ -115,7 +114,7 @@ void init_collidables(context *ctx) {
     }
 }
 
-void init_projectiles(context *ctx) {
+void init_projectiles(Context *ctx) {
     float currentTime = SDL_GetTicks() / 1000.0f;
     if (currentTime - ctx->lastProjectileFiredTime >= ctx->PROJECTILE_COOLDOWN_TIME) {
         Projectile *projectile = new Projectile(
@@ -132,7 +131,7 @@ void init_projectiles(context *ctx) {
     }
 }
 
-void update_collidables(context *ctx) {
+void update_collidables(Context *ctx) {
 
     for (Collidable *collidable : ctx->collidables) {
         collidable->update_position(ctx->scroll_speed);
@@ -143,14 +142,14 @@ void update_collidables(context *ctx) {
     }
 }
 
-void update_background_offset(context *ctx) {
+void update_background_offset(Context *ctx) {
     ctx->background_offset += ctx->scroll_speed;
     if (ctx->background_offset >= ctx->background_image_width - ctx->WINDOW_WIDTH) {
         ctx->background_offset = 0.0f;
     }
 }
 
-void handle_collisions(context *ctx) {
+void handle_collisions(Context *ctx) {
     
     for (Collidable *collidable : ctx->collidables) {
         collidable->handle_collision(ctx);
@@ -158,7 +157,7 @@ void handle_collisions(context *ctx) {
     Helper::reset_collided_flag(ctx);
 }
 
-void render_frame(context *ctx) {
+void render_frame(Context *ctx) {
 
     Renderer::draw_background(ctx);
     Renderer::draw_player(ctx);
@@ -171,7 +170,7 @@ void render_frame(context *ctx) {
     }
 }
 
-void monitor_game_over_status(context *ctx) {
+void monitor_game_over_status(Context *ctx) {
 
     if (Helper::is_game_over(ctx)) {
         if (!ctx->score_sent) {
@@ -208,18 +207,18 @@ void monitor_game_over_status(context *ctx) {
 }
 
 void main_loop(void *arg) {
-    context *ctx = static_cast<context*>(arg);
+    Context *ctx = static_cast<Context*>(arg);
 
     SDL_Rect dest_rect = {0, 0, static_cast<int>(ctx->WINDOW_WIDTH), static_cast<int>(ctx->WINDOW_HEIGHT)};
 
     SDL_RenderCopy(ctx->renderer, ctx->images[ctx->start_image], nullptr, &dest_rect);
 
     if (gameStarted) {
-        ctx->game_state = context::GameState::GAMEPLAY;
+        ctx->game_state = Context::GameState::GAMEPLAY;
         gameStarted = false;
     }
 
-    if (ctx->game_state == context::GameState::GAMEPLAY) {
+    if (ctx->game_state == Context::GameState::GAMEPLAY) {
         render_frame(ctx);
         handle_collisions(ctx);
     }
@@ -233,7 +232,7 @@ void main_loop(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-    context ctx;
+    Context ctx;
 
     SDL_Init(SDL_INIT_VIDEO);
     ctx.window = SDL_CreateWindow("Space Runner", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ctx.WINDOW_WIDTH, ctx.WINDOW_HEIGHT, 0);

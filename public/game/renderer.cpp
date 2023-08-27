@@ -13,11 +13,11 @@
 
 using namespace std;
 
-void Renderer::draw_image(int img, const context* ctx) {
+void Renderer::draw_image(int img, const Context* ctx) {
     SDL_RenderCopy(ctx->renderer, ctx->images[img], nullptr, nullptr);
 }
 
-void Renderer::draw_background(context *ctx) {
+void Renderer::draw_background(Context *ctx) {
 
     if (Helper::is_game_over(ctx)) ctx->scroll_speed = 0.0f;
 
@@ -30,19 +30,19 @@ void Renderer::draw_background(context *ctx) {
     SDL_RenderCopy(ctx->renderer, ctx->images[ctx->background_image], nullptr, &dest_rect);
 }
 
-void Renderer::draw_player(const context *ctx) {
+void Renderer::draw_player(const Context *ctx) {
 
     if (Helper::is_game_over(ctx)) return;
 
     SDL_Color color = { 255, 255, 255, 255 };
 
-    if (ctx->avatar_selected == context::Avatar::MODEL_1) {
+    if (ctx->avatar_selected == Context::Avatar::MODEL_1) {
         color = { 255, 255, 0, 255 };
     }
-    else if (ctx->avatar_selected == context::Avatar::MODEL_2) {
+    else if (ctx->avatar_selected == Context::Avatar::MODEL_2) {
         color = { 90, 90, 90, 255 };
     }
-    else if (ctx->avatar_selected == context::Avatar::MODEL_3) {
+    else if (ctx->avatar_selected == Context::Avatar::MODEL_3) {
         color = { 254, 44, 84, 255 };
     }
     
@@ -64,22 +64,22 @@ void Renderer::draw_player(const context *ctx) {
     }
 }
 
-void Renderer::draw_collidables(context *ctx) {
+void Renderer::draw_collidables(Context *ctx) {
 
     for (Collidable *collidable : ctx->collidables) {
         collidable->draw(ctx);
     }
 }
 
-void Renderer::draw_score(const context *ctx) {
-    context::Text score_text = { "Score: " + to_string(ctx->score), {255, 165, 0, 255}, { 10, 10 } };
-    context::Text lives_text = { "Lives: " + to_string(ctx->lives), {255, 165, 0, 255}, { 10, 50 } };
+void Renderer::draw_score(const Context *ctx) {
+    Context::Text score_text = { "Score: " + to_string(ctx->score), {255, 165, 0, 255}, { 10, 10 } };
+    Context::Text lives_text = { "Lives: " + to_string(ctx->lives), {255, 165, 0, 255}, { 10, 50 } };
 
     draw_text(ctx, score_text);
     draw_text(ctx, lives_text);
 }
 
-void Renderer::draw_game_over(context *ctx) {
+void Renderer::draw_game_over(Context *ctx) {
     string game_over = "Game over!";
     string score_achieved = "Score achieved: " + to_string(ctx->score);
 
@@ -87,7 +87,7 @@ void Renderer::draw_game_over(context *ctx) {
     int textWidth, textHeight;
 
     TTF_SizeText(ctx->font, game_over.c_str(), &textWidth, &textHeight);
-    context::Text text = { game_over, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, 40.0f}};
+    Context::Text text = { game_over, text_color, { (ctx->WINDOW_WIDTH - textWidth) / 2, 40.0f}};
     Renderer::draw_text(ctx, text);
 
     TTF_SizeText(ctx->font, score_achieved.c_str(), &textWidth, &textHeight);
@@ -95,7 +95,7 @@ void Renderer::draw_game_over(context *ctx) {
     Renderer::draw_text(ctx, text);
 }
 
-void Renderer::draw_text(const context *ctx, context::Text text) {
+void Renderer::draw_text(const Context *ctx, Context::Text text) {
     const char *p_text = text.text.c_str();
     SDL_Surface *surface = TTF_RenderText_Solid(ctx->font, p_text, text.color);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(ctx->renderer, surface);

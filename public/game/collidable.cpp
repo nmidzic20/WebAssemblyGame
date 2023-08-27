@@ -8,7 +8,7 @@
 Collidable::Collidable(float _x, float _y, float _width, float _height, bool _collided)
     : x(_x), y(_y), width(_width), height(_height), collided(_collided) {}
 
-void Collidable::reset_position(const context *ctx) {
+void Collidable::reset_position(const Context *ctx) {
     x = ctx->WINDOW_WIDTH + static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_WIDTH));
     y = static_cast<float>(rand() % static_cast<int>(ctx->WINDOW_HEIGHT));
 
@@ -24,7 +24,7 @@ void Collidable::update_position(float scroll_speed) {
     x -= scroll_speed;
 }
 
-void Collidable::draw(const context *ctx) {
+void Collidable::draw(const Context *ctx) {
     SDL_Texture *pointTexture = IMG_LoadTexture(ctx->renderer, "../assets/images/point.png");
 
     if (pointTexture) {
@@ -38,7 +38,7 @@ void Collidable::draw(const context *ctx) {
     }
 }
 
-void Collidable::handle_collision(context *ctx) {
+void Collidable::handle_collision(Context *ctx) {
     SDL_Rect cubeRect = {
         static_cast<int>(ctx->player_position.x - ctx->player_size / 2),
         static_cast<int>(ctx->player_position.y - ctx->player_size / 2),
