@@ -23,12 +23,14 @@ selectElement.addEventListener("change", async () => {
 });
 
 async function getPagesTotal() {
-  fetch("/api/players")
-    .then((response) => response.json())
-    .then((data) => {
-      numRows = data.length;
-      numPages = Math.ceil(numRows / selectedItemsPerPage);
-    });
+  try {
+    const response = await fetch("/api/players");
+    const data = await response.json();
+    numRows = data.length;
+    numPages = Math.ceil(numRows / selectedItemsPerPage);
+  } catch (error) {
+    console.error("Error:", error);
+  }
 }
 
 function showPage(page) {

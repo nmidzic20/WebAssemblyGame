@@ -354,7 +354,7 @@ function changeAvatar(modelName) {
 function handleKeydown(event) {
   switch (event.key) {
     case " ":
-      createBullet();
+      if (avatarShape) createBullet();
       break;
     case "ArrowUp":
     case "w":
