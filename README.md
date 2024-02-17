@@ -1,5 +1,7 @@
 A space-themed endless runner game, created using WebAssembly with C++ and SDL2. Developed as the practical part of the bachelor thesis "Using C++ programming language in web application development".
 
+Demo: https://www.dropbox.com/scl/fi/f8xraqj22oj58in2fh2x2/web-assembly-game.mp4?rlkey=mbfsjork590la9p6sh8tm78xd&dl=0
+
 # Installation
 
 From root directory: 
