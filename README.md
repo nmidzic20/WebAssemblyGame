@@ -8,5 +8,12 @@ A space-themed endless runner game, created using WebAssembly with C++ and SDL2.
 
 # Installation
 
-From root directory: `node server.js`
+
+From root directory: 
+
+```
+npm install
+node server.js
+```
+
 Go to: `http://localhost:3000`
